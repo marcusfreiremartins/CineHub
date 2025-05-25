@@ -1,0 +1,80 @@
+﻿@model CineHub.Models.ViewModels.MovieDetailsViewModel
+@{
+    ViewData["Title"] = Model.Movie.Title;
+}
+
+<div class="row">
+    <div class="col-md-4">
+        @if (!string.IsNullOrEmpty(Model.Movie.PosterPath))
+        {
+            <img src="@Model.ImageBaseUrl@Model.Movie.PosterPath"
+                 class="img-fluid rounded shadow" alt="@Model.Movie.Title">
+        }
+        else
+        {
+            <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded"
+                 style="height: 600px;">
+                <span class="fs-1">🎬</span>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-8">
+        <h1 class="display-5 fw-bold">@Model.Movie.Title</h1>
+
+        <div class="mb-3">
+            @if (Model.Movie.ReleaseDate.HasValue)
+            {
+                <span class="badge bg-secondary me-2">
+                    📅 @Model.Movie.ReleaseDate.Value.ToString("dd/MM/yyyy")
+                </span>
+            }
+
+            @if (Model.Movie.VoteAverage > 0)
+            {
+                <span class="badge bg-warning text-dark me-2">
+                    ⭐ @Model.Movie.VoteAverage.ToString("F1")/10
+                </span>
+            }
+
+            @if (Model.Movie.VoteCount > 0)
+            {
+                <span class="badge bg-info">
+                    👥 @Model.Movie.VoteCount.ToString("N0") votos
+                </span>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Movie.Overview))
+        {
+            <div class="mb-4">
+                <h4>📝 Sinopse</h4>
+                <p class="lead">@Model.Movie.Overview</p>
+            </div>
+        }
+
+        <div class="mb-4">
+            <h4>ℹ️ Informações</h4>
+            <ul class="list-unstyled">
+                <li><strong>ID TMDB:</strong> @Model.Movie.TMDbId</li>
+                @if (Model.Movie.ReleaseDate.HasValue)
+                {
+                    <li><strong>Lançamento:</strong> @Model.Movie.ReleaseDate.Value.ToString("dd/MM/yyyy")</li>
+                }
+                <li><strong>Última atualização:</strong> @Model.Movie.LastUpdated.ToString("dd/MM/yyyy HH:mm")</li>
+            </ul>
+        </div>
+
+        <div class="d-grid gap-2 d-md-flex">
+            <a asp-controller="Movies" asp-action="Index" class="btn btn-secondary">
+                ← Voltar para Filmes
+            </a>
+            <button class="btn btn-success" onclick="alert('Funcionalidade em desenvolvimento!')">
+                ⭐ Avaliar Filme
+            </button>
+            <button class="btn btn-primary" onclick="alert('Funcionalidade em desenvolvimento!')">
+                📝 Comentar
+            </button>
+        </div>
+    </div>
+</div>
