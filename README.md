@@ -23,20 +23,6 @@
 - Organização da aplicação em camadas (Controller → Service → ViewModel)
 - Layout principal reutilizável e Views organizadas
 
-## 📁 Estrutura de Pastas 
-CineHub/
-├── Configuration/ # Configurações globais (ex: ImageSettings)
-├── Controllers/ # Controladores MVC (Account, Movie, Rating, etc.)
-├── Data/ # Contexto do EF Core (ApplicationDbContext)
-├── Models/
-│ ├── DTOs/ # Objetos de Transferência de Dados
-│ ├── ViewModels/ # ViewModels para as Views
-│ └── Entidades # Modelos principais: User, Movie, etc.
-├── Services/ # Camada de serviços (Auth, Movie, Rating, TMDb)
-├── Views/ # Razor Views organizadas por área
-├── wwwroot/ # Arquivos estáticos (CSS, JS, imagens)
-├── appsettings.json # Configurações (conexão com BD, chave API)
-└── Program.cs # Configuração e execução da aplicação
 ## ⚙️ Como Executar
 
 1. Clone o repositório:
