@@ -7,7 +7,7 @@ using CineHub.Models;
 
 namespace CineHub.Controllers
 {
-    public class RatingController : Controller
+    public class RatingController : BaseController
     {
         private readonly RatingService _ratingService;
         private readonly MovieService _movieService;
@@ -25,19 +25,17 @@ namespace CineHub.Controllers
         {
             if (!IsUserLoggedIn())
             {
-                TempData["LoginMessage"] = "Você precisa fazer login para avaliar filmes!";
-                TempData["MessageType"] = "warning";
+                ShowWarning("Você precisa fazer login para avaliar filmes! 🔑");
                 TempData["PendingMovieId"] = movieId;
-
                 var returnUrl = Url.Action("RateMovie", "Rating", new { movieId = movieId });
-
                 return RedirectToAction("Login", "Account", new { returnUrl = returnUrl });
             }
 
             var movie = await _movieService.GetMovieByIdAsync(movieId);
             if (movie == null)
             {
-                return NotFound();
+                ShowError("Filme não encontrado!");
+                return RedirectToAction("Index", "Movies");
             }
 
             var userId = GetCurrentUserId();
@@ -64,6 +62,7 @@ namespace CineHub.Controllers
         {
             if (!IsUserLoggedIn())
             {
+                ShowWarning("Sessão expirada. Faça login novamente.");
                 return RedirectToAction("Login", "Account");
             }
 
@@ -76,21 +75,38 @@ namespace CineHub.Controllers
                     model.MoviePosterPath = movie.PosterPath;
                     model.ImageBaseUrl = _imageSettings.BaseUrl;
                 }
-                return View(model);
+                ShowError("Verifique os dados informados.");
+                return View("~/Views/User/RateMovie.cshtml", model);
             }
 
             var userId = GetCurrentUserId();
 
-            await _ratingService.ToggleFavoriteSilentlyAsync(userId, model.MovieId, model.IsFavorite);
-            var result = await _ratingService.RateMovieAsync(userId, model.MovieId, model.Rating, model.Comment);
-
-            if (result.Success)
+            try
             {
-                TempData["SuccessMessage"] = result.Message;
-                return RedirectToAction("Details", "Movies", new { id = model.MovieId });
+                await _ratingService.ToggleFavoriteSilentlyAsync(userId, model.MovieId, model.IsFavorite);
+                var result = await _ratingService.RateMovieAsync(userId, model.MovieId, model.Rating, model.Comment);
+
+                if (result.Success)
+                {
+                    if (model.IsFavorite)
+                    {
+                        ShowSuccess($"Avaliação salva e filme adicionado aos favoritos! ⭐❤️");
+                    }
+                    else
+                    {
+                        ShowSuccess("Avaliação salva com sucesso! ⭐");
+                    }
+                    return RedirectToAction("Details", "Movies", new { id = model.MovieId });
+                }
+
+                ModelState.AddModelError("", result.Message);
+                ShowError(result.Message);
+            }
+            catch (Exception)
+            {
+                ShowError("Erro inesperado ao salvar avaliação. Tente novamente.");
             }
 
-            ModelState.AddModelError("", result.Message);
             return View("~/Views/User/RateMovie.cshtml", model);
         }
 
@@ -102,33 +118,17 @@ namespace CineHub.Controllers
                 return Json(new { success = false, message = "Você precisa estar logado para favoritar filmes." });
             }
 
-            var userId = GetCurrentUserId();
-            var result = await _ratingService.ToggleFavoriteAsync(userId, movieId);
-
-            return Json(new { success = result.Success, message = result.Message });
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _ratingService.ToggleFavoriteAsync(userId, movieId);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, message = "Erro ao atualizar favoritos." });
+            }
         }
-
-        //Função comentado no momento, seria para mostrar todas as avaliações dos usuários no banco de dados
-        //[HttpGet]
-        //public async Task<IActionResult> MovieRatings(int movieId)
-        //{
-        //var movie = await _movieService.GetMovieByIdAsync(movieId);
-        //if (movie == null)
-        //{
-        //return NotFound();
-        //}
-
-        //var ratings = await _ratingService.GetMovieRatingsAsync(movieId);
-        //var averageRating = await _ratingService.GetMovieAverageRatingAsync(movieId);
-        //var ratingCount = await _ratingService.GetMovieRatingCountAsync(movieId);
-
-        //ViewBag.Movie = movie;
-        //ViewBag.AverageRating = averageRating;
-        //ViewBag.RatingCount = ratingCount;
-        //ViewBag.ImageBaseUrl = _imageSettings.BaseUrl;
-
-        //return View(ratings);
-        //}
 
         [HttpPost]
         public async Task<IActionResult> DeleteRating(int movieId)
@@ -138,21 +138,16 @@ namespace CineHub.Controllers
                 return Json(new { success = false, message = "Você precisa estar logado." });
             }
 
-            var userId = GetCurrentUserId();
-            var result = await _ratingService.DeleteRating(userId, movieId);
-
-            return Json(new { success = result.Success, message = result.Message });
-        }
-
-        // Helper methods
-        private bool IsUserLoggedIn()
-        {
-            return HttpContext.Session.GetInt32("UserId") != null;
-        }
-
-        private int GetCurrentUserId()
-        {
-            return HttpContext.Session.GetInt32("UserId") ?? 0;
+            try
+            {
+                var userId = GetCurrentUserId();
+                var result = await _ratingService.DeleteRating(userId, movieId);
+                return Json(new { success = result.Success, message = result.Message });
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, message = "Erro ao excluir avaliação." });
+            }
         }
     }
 }

@@ -4,9 +4,10 @@ using CineHub.Models.ViewModels;
 using CineHub.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+
 namespace CineHub.Controllers
 {
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
         private readonly AuthService _authService;
         private readonly RatingService _ratingService;
@@ -36,7 +37,7 @@ namespace CineHub.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View(model);
+                return View("~/Views/User/Login.cshtml", model);
             }
 
             var result = await _authService.LoginAsync(model.Email, model.Password);
@@ -48,7 +49,7 @@ namespace CineHub.Controllers
                 HttpContext.Session.SetString("UserName", result.User.Name);
                 HttpContext.Session.SetString("UserEmail", result.User.Email);
 
-                TempData["SuccessMessage"] = result.Message;
+                ShowSuccess($"Bem-vindo de volta, {result.User.Name}! 🎬");
 
                 if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
                 {
@@ -90,7 +91,7 @@ namespace CineHub.Controllers
                 HttpContext.Session.SetString("UserName", result.User.Name);
                 HttpContext.Session.SetString("UserEmail", result.User.Email);
 
-                TempData["SuccessMessage"] = result.Message;
+                ShowSuccess($"Conta criada com sucesso! Bem-vindo ao CineHub, {result.User.Name}! 🎉");
                 return RedirectToAction("Index", "Home");
             }
 
@@ -101,8 +102,9 @@ namespace CineHub.Controllers
         [HttpPost]
         public IActionResult Logout()
         {
+            var userName = HttpContext.Session.GetString("UserName");
             HttpContext.Session.Clear();
-            TempData["SuccessMessage"] = "Logout realizado com sucesso!";
+            ShowInfo($"Até logo, {userName}! Volte sempre! 👋");
             return RedirectToAction("Index", "Home");
         }
 
@@ -111,6 +113,7 @@ namespace CineHub.Controllers
         {
             if (!IsUserLoggedIn())
             {
+                ShowWarning("Você precisa fazer login para acessar seu perfil.");
                 return RedirectToAction("Login");
             }
 
@@ -119,6 +122,7 @@ namespace CineHub.Controllers
 
             if (user == null)
             {
+                ShowError("Erro ao carregar perfil do usuário.");
                 return RedirectToAction("Login");
             }
 
@@ -138,23 +142,27 @@ namespace CineHub.Controllers
                 RecentRatings = recentRatings,
                 RecentFavorites = recentFavorites.Take(5).ToList(),
                 ImageBaseUrl = _imageSettings.BaseUrl
-
             };
 
             return View("~/Views/User/UserProfile.cshtml", viewModel);
         }
-
 
         [HttpGet]
         public async Task<IActionResult> Favorites()
         {
             if (!IsUserLoggedIn())
             {
+                ShowWarning("Você precisa fazer login para ver seus favoritos.");
                 return RedirectToAction("Login");
             }
 
             var userId = GetCurrentUserId();
             var favorites = await _ratingService.GetUserFavoritesAsync(userId);
+
+            if (!favorites.Any())
+            {
+                ShowInfo("Você ainda não tem filmes favoritos. Que tal explorar alguns filmes? 🎬");
+            }
 
             var favoriteItems = favorites.Select(f => new FavoriteItemViewModel
             {
@@ -166,7 +174,6 @@ namespace CineHub.Controllers
                 AddedAt = f.CreatedAt
             }).ToList();
 
-
             ViewBag.ImageBaseUrl = _imageSettings.BaseUrl;
             return View("~/Views/User/Favorites.cshtml", favoriteItems);
         }
@@ -176,11 +183,17 @@ namespace CineHub.Controllers
         {
             if (!IsUserLoggedIn())
             {
+                ShowWarning("Você precisa fazer login para ver suas avaliações.");
                 return RedirectToAction("Login");
             }
 
             var userId = GetCurrentUserId();
             var ratings = await _ratingService.GetUserRatingsAsync(userId, 50);
+
+            if (!ratings.Any())
+            {
+                ShowInfo("Você ainda não avaliou nenhum filme. Que tal começar agora? ⭐");
+            }
 
             var viewModelList = ratings.Select(r => new RatingItemViewModel
             {
@@ -197,17 +210,6 @@ namespace CineHub.Controllers
 
             ViewBag.ImageBaseUrl = _imageSettings.BaseUrl;
             return View("~/Views/User/MyRatings.cshtml", viewModelList);
-        }
-
-        // Helper methods
-        private bool IsUserLoggedIn()
-        {
-            return HttpContext.Session.GetInt32("UserId") != null;
-        }
-
-        private int GetCurrentUserId()
-        {
-            return HttpContext.Session.GetInt32("UserId") ?? 0;
         }
     }
 }

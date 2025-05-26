@@ -9,10 +9,41 @@
 
     <!-- Estilos do Toast -->
     <style>
+        /* Compensação para navbar fixa */
+        body {
+            padding-top: 70px;
+        }
+
+        /* Layout flexbox para footer sempre no final */
+        html, body {
+            height: 100%;
+        }
+
+        .page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-content {
+            flex: 1;
+        }
+
+        /* Garante que o footer tenha texto branco */
+        .footer {
+            background-color: #212529 !important;
+            color: white !important;
+            margin-top: auto;
+        }
+
+            .footer .text-center {
+                color: white !important;
+            }
+
         /* Container do Toast */
         .toast-container {
             position: fixed;
-            top: 20px;
+            top: 90px; /* Ajustado para ficar abaixo da navbar fixa */
             right: 20px;
             z-index: 9999;
             max-width: 350px;
@@ -141,8 +172,12 @@
 
         /* Responsividade */
         @@media (max-width: 768px) {
+            body {
+                padding-top: 60px;
+            }
+
             .toast-container {
-                top: 10px;
+                top: 70px;
                 right: 10px;
                 left: 10px;
                 max-width: none;
@@ -163,115 +198,104 @@
     </style>
 </head>
 <body>
-    <!-- Container do Toast -->
-    <div id="toast-container" class="toast-container"></div>
+    <div class="page-wrapper">
+        <!-- Container do Toast -->
+        <div id="toast-container" class="toast-container"></div>
 
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
-            <div class="container">
-                <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">
-                    🎬 CineHub
-                </a>
+        <header>
+            <!-- Navbar fixa no topo -->
+            <nav class="navbar navbar-expand-sm navbar-dark bg-dark fixed-top">
+                <div class="container">
+                    <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">
+                        🎬 CineHub
+                    </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
 
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Início</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-controller="Movies" asp-action="Index">Filmes</a>
-                        </li>
-                        @if (Context.Session.GetInt32("UserId") != null)
-                        {
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto">
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Account" asp-action="Favorites">❤️ Favoritos</a>
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Início</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Account" asp-action="MyRatings">⭐ Minhas Avaliações</a>
+                                <a class="nav-link" asp-area="" asp-controller="Movies" asp-action="Index">Filmes</a>
                             </li>
-                        }
-                    </ul>
-                    <ul class="navbar-nav">
-                        @if (Context.Session.GetInt32("UserId") != null)
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    👤 @Context.Session.GetString("UserName")
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
-                                            🏠 Meu Perfil
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Account" asp-action="MyRatings">
-                                            ⭐ Minhas Avaliações
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" asp-controller="Account" asp-action="Favorites">
-                                            ❤️ Meus Favoritos
-                                        </a>
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                            <button type="submit" class="dropdown-item">
-                                                🚪 Sair
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Account" asp-action="Login">🔑 Entrar</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Account" asp-action="Register">✨ Registrar</a>
-                            </li>
-                        }
-                    </ul>
+                            @if (Context.Session.GetInt32("UserId") != null)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Account" asp-action="Favorites">❤️ Favoritos</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Account" asp-action="MyRatings">⭐ Minhas Avaliações</a>
+                                </li>
+                            }
+                        </ul>
+                        <ul class="navbar-nav">
+                            @if (Context.Session.GetInt32("UserId") != null)
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        👤 @Context.Session.GetString("UserName")
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                                                🏠 Meu Perfil
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Account" asp-action="MyRatings">
+                                                ⭐ Minhas Avaliações
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-controller="Account" asp-action="Favorites">
+                                                ❤️ Meus Favoritos
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                                <button type="submit" class="dropdown-item">
+                                                    🚪 Sair
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Account" asp-action="Login">🔑 Entrar</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" asp-controller="Account" asp-action="Register">✨ Registrar</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </nav>
-    </header>
+            </nav>
+        </header>
 
-    <div class="container mt-4">
-        <main role="main" class="pb-3">
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <strong>✅ Sucesso!</strong> @TempData["SuccessMessage"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
-
-            @if (TempData["ErrorMessage"] != null)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <strong>❌ Erro!</strong> @TempData["ErrorMessage"]
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted bg-dark text-light mt-5">
-        <div class="container py-3">
-            <div class="text-center">
-                &copy; 2025 - CineHub - Desenvolvido por Marcus Vinicius Freire Martins
-            </div>
+        <div class="container main-content">
+            <main role="main" class="pb-3 mt-4">
+                @RenderBody()
+            </main>
         </div>
-    </footer>
+
+        <!-- Footer com texto branco -->
+        <footer class="border-top footer bg-dark text-white">
+            <div class="container py-3">
+                <div class="text-center">
+                    &copy; 2025 - CineHub - Desenvolvido por Marcus Vinicius Freire Martins
+                </div>
+            </div>
+        </footer>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -279,17 +303,17 @@
     <script>
         const toastIcons = {
             success: `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                    </svg>`,
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>`,
             warning: `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-                        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
-                    </svg>`,
+                                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                            </svg>`,
             error: `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                    </svg>`,
+                                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                            </svg>`,
             info: `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-                    </svg>`
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                            </svg>`
         };
 
         function showToast(message, type = 'info', duration = 5000) {
@@ -299,11 +323,11 @@
             toast.className = `toast ${type}`;
 
             toast.innerHTML = `
-                        <div class="toast-icon">${toastIcons[type] || toastIcons.info}</div>
-                        <div class="toast-content">${message}</div>
-                        <button class="toast-close" onclick="hideToast(this)">&times;</button>
-                        <div class="toast-progress"></div>
-                    `;
+                                <div class="toast-icon">${toastIcons[type] || toastIcons.info}</div>
+                                <div class="toast-content">${message}</div>
+                                <button class="toast-close" onclick="hideToast(this)">&times;</button>
+                                <div class="toast-progress"></div>
+                            `;
 
             container.appendChild(toast);
 
@@ -329,21 +353,13 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-
-        @if (TempData["LoginMessage"] != null)
-        {
-            <text>
-                    showToast('@Html.Raw(TempData["LoginMessage"])', '@(TempData["MessageType"] ?? "warning")');
-            </text>
-        }
-
         @if (TempData["ToastMessage"] != null)
         {
             <text>
                     showToast('@Html.Raw(TempData["ToastMessage"])', '@(TempData["ToastType"] ?? "info")');
             </text>
         }
-                });
+                        });
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

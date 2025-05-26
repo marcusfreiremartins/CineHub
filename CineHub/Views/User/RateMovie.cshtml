@@ -41,14 +41,14 @@
                                 <div class="rating-container mb-2">
                                     @for (int i = 1; i <= 10; i++)
                                     {
-                                        <label class="rating-star">
+                                        <label class="rating-badge">
                                             <input type="radio" asp-for="Rating" value="@i" />
-                                            <span class="star" data-value="@i">⭐</span>
+                                            <span class="badge bg-secondary fs-6" data-value="@i">@i</span>
                                         </label>
                                     }
                                 </div>
                                 <span asp-validation-for="Rating" class="text-danger"></span>
-                                <div class="form-text">Clique nas estrelas para dar sua nota</div>
+                                <div class="form-text">Clique nos números para dar sua nota</div>
                             </div>
 
                             <div class="mb-4">
@@ -94,67 +94,115 @@
 <style>
     .rating-container {
         display: flex;
-        gap: 5px;
+        gap: 8px;
+        flex-wrap: wrap;
     }
 
-    .rating-star {
+    .rating-badge {
         cursor: pointer;
-        font-size: 1.5rem;
+        transition: transform 0.2s ease;
     }
 
-        .rating-star input {
-            display: none;
-        }
+    .rating-badge:hover {
+        transform: scale(1.1);
+    }
 
-        .rating-star .star {
-            color: #ddd;
-            transition: color 0.2s;
-        }
+    .rating-badge input {
+        display: none;
+    }
 
-        .rating-star:hover .star,
-        .rating-star input:checked ~ .star,
-        .rating-star:hover ~ .rating-star .star {
-            color: #ffc107;
-        }
+    .rating-badge .badge {
+        transition: all 0.3s ease;
+        user-select: none;
+        min-width: 35px;
+        text-align: center;
+        border: 2px solid transparent;
+    }
 
-        .rating-star input:checked ~ .star {
-            color: #ffc107;
+    .rating-badge .badge:hover {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd;
+        box-shadow: 0 0 10px rgba(13, 110, 253, 0.4);
+    }
+
+    .rating-badge input:checked + .badge {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd;
+        box-shadow: 0 0 15px rgba(13, 110, 253, 0.6);
+    }
+
+    /* Efeito de preenchimento progressivo ao hover */
+    .rating-container:hover .rating-badge .badge {
+        background-color: #6c757d !important;
+    }
+
+    .rating-container .rating-badge:hover .badge,
+    .rating-container .rating-badge:hover ~ .rating-badge .badge {
+        background-color: #6c757d !important;
+    }
+
+    .rating-container .rating-badge:hover .badge {
+        background-color: #0d6efd !important;
+    }
+
+    /* Preenchimento dos badges anteriores ao hover */
+    .rating-badge:hover ~ .rating-badge .badge {
+        background-color: #6c757d !important;
+    }
+
+    /* Responsive */
+    @@media (max-width: 576px) {
+        .rating-container {
+            gap: 5px;
         }
+        
+        .rating-badge .badge {
+            min-width: 30px;
+            font-size: 0.875rem;
+        }
+    }
 </style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const stars = document.querySelectorAll('.rating-star');
+        const badges = document.querySelectorAll('.rating-badge');
+        const container = document.querySelector('.rating-container');
         const currentRating = @Model.Rating;
 
-        function highlightStars(rating) {
-            stars.forEach((star, index) => {
-                const starElement = star.querySelector('.star');
+        function highlightBadges(rating) {
+            badges.forEach((badgeLabel, index) => {
+                const badge = badgeLabel.querySelector('.badge');
                 if (index < rating) {
-                    starElement.style.color = '#ffc107';
+                    badge.classList.remove('bg-secondary');
+                    badge.classList.add('bg-primary');
                 } else {
-                    starElement.style.color = '#ddd';
+                    badge.classList.remove('bg-primary');
+                    badge.classList.add('bg-secondary');
                 }
             });
         }
 
-        highlightStars(currentRating);
+        // Destacar a nota atual
+        highlightBadges(currentRating);
 
-        stars.forEach((star, index) => {
-            star.addEventListener('mouseenter', () => {
-                highlightStars(index + 1);
+        // Efeito hover
+        badges.forEach((badgeLabel, index) => {
+            badgeLabel.addEventListener('mouseenter', () => {
+                highlightBadges(index + 1);
             });
 
-            star.addEventListener('click', () => {
-                highlightStars(index + 1);
+            badgeLabel.addEventListener('click', () => {
+                const input = badgeLabel.querySelector('input');
+                input.checked = true;
+                highlightBadges(index + 1);
             });
         });
 
-        const container = document.querySelector('.rating-container');
+        // Restaurar ao sair do container
         container.addEventListener('mouseleave', () => {
             const checkedInput = document.querySelector('input[name="Rating"]:checked');
             const checkedValue = checkedInput ? parseInt(checkedInput.value) : currentRating;
-            highlightStars(checkedValue);
+            highlightBadges(checkedValue);
         });
     });
 </script>

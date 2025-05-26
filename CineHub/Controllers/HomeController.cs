@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 
 namespace CineHub.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         private readonly MovieService _movieService;
         private readonly ImageSettings _imageSettings;
@@ -20,39 +20,67 @@ namespace CineHub.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var movies = await _movieService.GetPopularMoviesAsync();
-            var viewModel = new MovieIndexViewModel
+            try
             {
-                Movies = movies,
-                ImageBaseUrl = _imageSettings.BaseUrl
-            };
+                var movies = await _movieService.GetPopularMoviesAsync();
+                var viewModel = new MovieIndexViewModel
+                {
+                    Movies = movies,
+                    ImageBaseUrl = _imageSettings.BaseUrl
+                };
 
-            return View(viewModel);
+                // Mensagem de boas-vindas para novos usuários (opcional)
+                if (IsUserLoggedIn() && TempData["IsNewUser"] != null)
+                {
+                    var userName = HttpContext.Session.GetString("UserName");
+                    ShowSuccess($"Bem-vindo ao CineHub, {userName}! Explore nossos filmes populares! 🎬");
+                }
+
+                return View(viewModel);
+            }
+            catch (Exception)
+            {
+                ShowError("Erro ao carregar filmes populares. Tente novamente mais tarde.");
+                return View(new MovieIndexViewModel { Movies = new List<Movie>(), ImageBaseUrl = _imageSettings.BaseUrl });
+            }
         }
 
         [HttpGet]
         public async Task<IActionResult> Search(string q = "", int page = 1)
         {
-            List<Movie> movies;
-
-            if (string.IsNullOrWhiteSpace(q))
+            try
             {
-                movies = await _movieService.GetPopularMoviesAsync(page);
+                List<Movie> movies;
+
+                if (string.IsNullOrWhiteSpace(q))
+                {
+                    movies = await _movieService.GetPopularMoviesAsync(page);
+                }
+                else
+                {
+                    movies = await _movieService.SearchMoviesAsync(q, page);
+
+                    if (!movies.Any())
+                    {
+                        ShowInfo($"Nenhum filme encontrado para '{q}'. Tente outros termos de busca. 🔍");
+                    }
+                }
+
+                var viewModel = new MovieIndexViewModel
+                {
+                    Movies = movies,
+                    Search = q,
+                    CurrentPage = page,
+                    ImageBaseUrl = _imageSettings.BaseUrl
+                };
+
+                return View("Index", viewModel);
             }
-            else
+            catch (Exception)
             {
-                movies = await _movieService.SearchMoviesAsync(q, page);
+                ShowError("Erro na busca. Tente novamente.");
+                return View("Index", new MovieIndexViewModel { Movies = new List<Movie>(), ImageBaseUrl = _imageSettings.BaseUrl });
             }
-
-            var viewModel = new MovieIndexViewModel
-            {
-                Movies = movies,
-                Search = q,
-                CurrentPage = page,
-                ImageBaseUrl = _imageSettings.BaseUrl
-            };
-
-            return View("Index", viewModel);
         }
     }
 }

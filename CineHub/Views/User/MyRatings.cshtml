@@ -78,13 +78,6 @@
                                     </small>
                                 </div>
 
-                                <div class="rating-stars mb-2">
-                                    @for (int i = 1; i <= 10; i++)
-                                    {
-                                        <span class="star @(i <= rating.UserRating ? "filled" : "")">⭐</span>
-                                    }
-                                </div>
-
                                 @if (!string.IsNullOrEmpty(rating.Comment))
                                 {
                                     <div class="bg-light p-3 rounded">
@@ -104,7 +97,7 @@
                                        class="btn btn-outline-primary btn-sm">
                                         Ver Detalhes do Filme
                                     </a>
-                                    <!--
+                                    <!--Comentado, provavelmente não vou conseguir entregar essa função
                                     <a asp-controller="Rating" asp-action="MovieRatings" asp-route-movieId="@rating.MovieId"
                                        class="btn btn-outline-info btn-sm">
                                         Ver Todas as Avaliações
@@ -158,19 +151,6 @@ else
 </div>
 
 <style>
-    .rating-stars .star {
-        font-size: 1.2rem;
-        margin-right: 2px;
-    }
-
-        .rating-stars .star.filled {
-            color: #ffc107;
-        }
-
-        .rating-stars .star:not(.filled) {
-            color: #dee2e6;
-        }
-
     .movie-card {
         transition: transform 0.2s ease-in-out;
     }
@@ -210,8 +190,6 @@ else
                 const modal = bootstrap.Modal.getInstance(document.getElementById('deleteRatingModal'));
                 modal.hide();
 
-                // Aqui você pode recarregar ou ajustar a remoção visual se quiser
-                // Exemplo: recarregar a página para atualizar a lista de avaliações
                 location.reload();
 
                 showToast(result.message, 'success');
@@ -231,9 +209,9 @@ else
         toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
         toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
         toast.innerHTML = `
-                <strong>${type === 'success' ? '✅' : '❌'}</strong> ${message}
-                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-            `;
+                    <strong>${type === 'success' ? '✅' : '❌'}</strong> ${message}
+                    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+                `;
 
         document.body.appendChild(toast);
 
