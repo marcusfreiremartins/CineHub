@@ -37,3 +37,5 @@
 "TMDb": {
   "ApiKey": "SUA_CHAVE_AQUI"
 }
+
+3. Execute os scripts que estão na pasta "Migration" no PostgreSQL.
