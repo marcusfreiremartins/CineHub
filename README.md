@@ -25,62 +25,18 @@
 
 ## 📁 Estrutura de Pastas 
 CineHub/
-├── Configuration/
-│   └── ImageSettings.cs                   # Configurações para exibição de imagens
-│
-├── Controllers/                           # Lida com requisições e navegação
-│   ├── AccountController.cs
-│   ├── BaseController.cs
-│   ├── HomeController.cs
-│   ├── MovieController.cs
-│   └── RatingController.cs
-│
-├── Data/
-│   └── ApplicationDbContext.cs            # DbContext para Entity Framework
-│
+├── Configuration/ # Configurações globais (ex: ImageSettings)
+├── Controllers/ # Controladores MVC (Account, Movie, Rating, etc.)
+├── Data/ # Contexto do EF Core (ApplicationDbContext)
 ├── Models/
-│   ├── DTOs/
-│   │   └── MovieDTO.cs                    # Objeto de transferência de dados de filmes
-│   ├── ViewModels/
-│   │   ├── AuthenticationViewModels.cs
-│   │   ├── UserViewModels.cs
-│   │   └── ViewModel.cs
-│   ├── ErrorViewModel.cs
-│   ├── Movie.cs                           # Modelo de entidade para filmes
-│   └── User.cs                            # Modelo de entidade para usuários
-│
-├── Services/                              # Lógica de negócio
-│   ├── AuthService.cs
-│   ├── MovieService.cs
-│   ├── RatingService.cs
-│   └── TMDbService.cs                     # Comunicação com API do TMDb
-│
-├── Views/                                 # Interface (Razor Views)
-│   ├── Home/
-│   │   ├── Index.cshtml
-│   │   └── Privacy.cshtml
-│   ├── Movies/
-│   │   ├── Details.cshtml
-│   │   └── Index.cshtml
-│   ├── Shared/
-│   │   ├── _Layout.cshtml                 # Layout principal do site
-│   │   ├── _ValidationScriptsPartial.cshtml
-│   │   └── Error.cshtml
-│   ├── User/
-│   │   ├── Favorites.cshtml
-│   │   ├── Login.cshtml
-│   │   ├── MyRatings.cshtml
-│   │   ├── RateMovie.cshtml
-│   │   ├── Register.cshtml
-│   │   └── UserProfile.cshtml
-│   ├── _ViewImports.cshtml
-│   └── _ViewStart.cshtml
-│
-├── wwwroot/                               # Arquivos estáticos (imagens, CSS, JS)
-├── appsettings.json                       # Configurações da aplicação
-├── Program.cs                             # Ponto de entrada do app
-└── CineHub.sln                            # Solução do Visual Studio
-
+│ ├── DTOs/ # Objetos de Transferência de Dados
+│ ├── ViewModels/ # ViewModels para as Views
+│ └── Entidades # Modelos principais: User, Movie, etc.
+├── Services/ # Camada de serviços (Auth, Movie, Rating, TMDb)
+├── Views/ # Razor Views organizadas por área
+├── wwwroot/ # Arquivos estáticos (CSS, JS, imagens)
+├── appsettings.json # Configurações (conexão com BD, chave API)
+└── Program.cs # Configuração e execução da aplicação
 ## ⚙️ Como Executar
 
 1. Clone o repositório:
