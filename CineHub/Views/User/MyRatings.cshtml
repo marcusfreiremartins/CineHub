@@ -1,0 +1,246 @@
+﻿@model List<CineHub.Models.ViewModels.RatingItemViewModel>
+@{
+    ViewData["Title"] = "Minhas Avaliações";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">⭐ Minhas Avaliações</h2>
+    <div class="text-muted">
+        <small>@Model.Count avaliação(ões) realizada(s)</small>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="row">
+        @foreach (var rating in Model)
+        {
+            <div class="col-12 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                @if (!string.IsNullOrEmpty(rating.MoviePosterPath))
+                                {
+                                    <img src="@ViewBag.ImageBaseUrl@rating.MoviePosterPath"
+                                         class="img-fluid rounded shadow" alt="@rating.MovieTitle"
+                                         style="max-height: 150px; width: 100%; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="bg-light text-center rounded d-flex align-items-center justify-content-center"
+                                         style="height: 150px;">
+                                        <span class="fs-1 text-muted">🎬</span>
+                                    </div>
+                                }
+                            </div>
+                            <div class="col-md-10">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="mb-0">
+                                        <a asp-controller="Movies" asp-action="Details" asp-route-id="@rating.MovieId"
+                                           class="text-decoration-none">
+                                            @rating.MovieTitle
+                                        </a>
+                                    </h5>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary fs-6">@rating.UserRating/10</span>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button"
+                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                ⚙️
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item"
+                                                       asp-controller="Rating" asp-action="RateMovie" asp-route-movieId="@rating.MovieId">
+                                                        ✏️ Editar Avaliação
+                                                    </a>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <button class="dropdown-item text-danger"
+                                                            onclick="confirmDeleteRating(@rating.MovieId, '@rating.MovieTitle')">
+                                                        🗑️ Excluir Avaliação
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        🕐 Avaliado em @rating.FormattedCreatedDate
+                                        @if (rating.WasUpdated)
+                                        {
+                                            <span class="text-info">(Atualizado em @rating.FormattedUpdatedDate)</span>
+                                        }
+                                    </small>
+                                </div>
+
+                                <div class="rating-stars mb-2">
+                                    @for (int i = 1; i <= 10; i++)
+                                    {
+                                        <span class="star @(i <= rating.UserRating ? "filled" : "")">⭐</span>
+                                    }
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(rating.Comment))
+                                {
+                                    <div class="bg-light p-3 rounded">
+                                        <h6 class="text-muted mb-2">💭 Seu comentário:</h6>
+                                        <p class="mb-0">@rating.Comment</p>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-muted fst-italic">
+                                        <small>Nenhum comentário adicionado</small>
+                                    </div>
+                                }
+
+                                <div class="mt-3">
+                                    <a asp-controller="Movies" asp-action="Details" asp-route-id="@rating.MovieId"
+                                       class="btn btn-outline-primary btn-sm">
+                                        Ver Detalhes do Filme
+                                    </a>
+                                    <!--
+                                    <a asp-controller="Rating" asp-action="MovieRatings" asp-route-movieId="@rating.MovieId"
+                                       class="btn btn-outline-info btn-sm">
+                                        Ver Todas as Avaliações
+                                    </a>
+                                    -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="text-center mt-4">
+        <a asp-controller="Movies" asp-action="Index" class="btn btn-outline-primary">
+            🎬 Avaliar Mais Filmes
+        </a>
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <div class="display-1 text-muted">📝</div>
+        <h3 class="text-muted">Você ainda não avaliou nenhum filme</h3>
+        <p class="text-muted">Comece avaliando filmes para acompanhar suas opiniões!</p>
+        <a asp-controller="Movies" asp-action="Index" class="btn btn-primary">
+            🎬 Explorar Filmes
+        </a>
+    </div>
+}
+
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal fade" id="deleteRatingModal" tabindex="-1" aria-labelledby="deleteRatingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteRatingModalLabel">🗑️ Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir sua avaliação do filme "<span id="movieTitle"></span>"?</p>
+                <p class="text-danger"><small>⚠️ Esta ação não pode ser desfeita.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Excluir Avaliação</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rating-stars .star {
+        font-size: 1.2rem;
+        margin-right: 2px;
+    }
+
+        .rating-stars .star.filled {
+            color: #ffc107;
+        }
+
+        .rating-stars .star:not(.filled) {
+            color: #dee2e6;
+        }
+
+    .movie-card {
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .movie-card:hover {
+            transform: translateY(-5px);
+        }
+</style>
+
+<script>
+    let movieIdToDelete = null;
+
+    function confirmDeleteRating(movieId, movieTitle) {
+        movieIdToDelete = movieId;
+        document.getElementById('movieTitle').textContent = movieTitle;
+
+        const modal = new bootstrap.Modal(document.getElementById('deleteRatingModal'));
+        modal.show();
+    }
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async function () {
+        if (!movieIdToDelete) return;
+
+        try {
+            const response = await fetch('/Rating/DeleteRating', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `movieId=${movieIdToDelete}`  // envia só movieId
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Fecha o modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteRatingModal'));
+                modal.hide();
+
+                // Aqui você pode recarregar ou ajustar a remoção visual se quiser
+                // Exemplo: recarregar a página para atualizar a lista de avaliações
+                location.reload();
+
+                showToast(result.message, 'success');
+            } else {
+                showToast(result.message, 'danger');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            showToast('Erro ao excluir avaliação. Tente novamente.', 'danger');
+        }
+
+        movieIdToDelete = null;
+    });
+
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+        toast.innerHTML = `
+                <strong>${type === 'success' ? '✅' : '❌'}</strong> ${message}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            `;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 3000);
+    }
+</script>

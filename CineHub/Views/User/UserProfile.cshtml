@@ -1,0 +1,166 @@
+﻿@model CineHub.Models.ViewModels.UserProfileViewModel
+@{
+    ViewData["Title"] = "Meu Perfil";
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">👤 Perfil do Usuário</h4>
+            </div>
+            <div class="card-body text-center">
+                <div class="display-1 text-primary mb-3">🎭</div>
+                <h3>@Model.Name</h3>
+                <p class="text-muted">@Model.Email</p>
+                <small class="text-muted">
+                    Membro desde @Model.CreatedAt.ToString("dd/MM/yyyy")
+                </small>
+            </div>
+        </div>
+
+        <div class="card shadow mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📊 Estatísticas</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">@Model.TotalRatings</h4>
+                            <small class="text-muted">Avaliações</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-danger">@Model.TotalFavorites</h4>
+                        <small class="text-muted">Favoritos</small>
+                    </div>
+                </div>
+                @if (Model.TotalRatings > 0)
+                {
+                    <hr>
+                    <div class="text-center">
+                        <h5 class="text-warning">
+                            ⭐ @Model.AverageRating.ToString("F1")
+                        </h5>
+                        <small class="text-muted">Sua nota média</small>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="card shadow mt-4">
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a asp-action="MyRatings" class="btn btn-outline-primary">
+                        📝 Minhas Avaliações
+                    </a>
+                    <a asp-action="Favorites" class="btn btn-outline-danger">
+                        ❤️ Meus Favoritos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        @if (Model.RecentRatings.Any())
+        {
+            <div class="card shadow mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">⭐ Avaliações Recentes</h5>
+                </div>
+                <div class="card-body">
+                    @foreach (var rating in Model.RecentRatings)
+                    {
+                        <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                            <div class="me-3">
+                                <span class="badge bg-primary fs-6">@rating.Rating/10</span>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">
+                                    <a asp-controller="Movies" asp-action="Details" asp-route-id="@rating.MovieId"
+                                       class="text-decoration-none">
+                                        @rating.Movie.Title
+                                    </a>
+                                </h6>
+                                @if (!string.IsNullOrEmpty(rating.Comment))
+                                {
+                                    <p class="text-muted mb-1">@rating.Comment</p>
+                                }
+                                <small class="text-muted">@rating.CreatedAt.ToString("dd/MM/yyyy")</small>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.TotalRatings > 5)
+                    {
+                        <div class="text-center">
+                            <a asp-action="MyRatings" class="btn btn-outline-primary">
+                                Ver Todas as Avaliações
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (Model.RecentFavorites.Any())
+        {
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">❤️ Favoritos Recentes</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var favorite in Model.RecentFavorites)
+                        {
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card h-100">
+                                    @if (!string.IsNullOrEmpty(favorite.Movie.PosterPath))
+                                    {
+                                        <img src="@Model.ImageBaseUrl@favorite.Movie.PosterPath"
+                                             class="card-img-top" alt="@favorite.Movie.Title"
+                                             style="height: 200px; object-fit: cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                             style="height: 200px;">
+                                            <span class="text-muted">🎬</span>
+                                        </div>
+                                    }
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title small">@favorite.Movie.Title</h6>
+                                        <small class="text-muted">@favorite.CreatedAt.ToString("dd/MM")</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    @if (Model.TotalFavorites > 5)
+                    {
+                        <div class="text-center">
+                            <a asp-action="Favorites" class="btn btn-outline-danger">
+                                Ver Todos os Favoritos
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (!Model.RecentRatings.Any() && !Model.RecentFavorites.Any())
+        {
+            <div class="card shadow">
+                <div class="card-body text-center py-5">
+                    <div class="display-1 text-muted">🎬</div>
+                    <h4>Bem-vindo ao CineHub!</h4>
+                    <p class="text-muted">Comece avaliando alguns filmes para ver suas estatísticas aqui.</p>
+                    <a asp-controller="Movies" asp-action="Index" class="btn btn-primary">
+                        Explorar Filmes
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>

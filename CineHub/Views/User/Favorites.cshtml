@@ -1,0 +1,151 @@
+﻿@model List<CineHub.Models.ViewModels.FavoriteItemViewModel>
+@{
+    ViewData["Title"] = "Meus Favoritos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">❤️ Meus Favoritos</h2>
+    <div class="text-muted">
+        <small>@Model.Count filme(s) favorito(s)</small>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="row">
+        @foreach (var favorite in Model)
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card h-100 shadow-sm movie-card">
+                    @if (!string.IsNullOrEmpty(favorite.MoviePosterPath))
+                    {
+                        <img src="@ViewBag.ImageBaseUrl@favorite.MoviePosterPath"
+                             class="card-img-top" alt="@favorite.MovieTitle"
+                             style="height: 400px; object-fit: cover;">
+                    }
+                    else
+                    {
+                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center text-white"
+                             style="height: 400px;">
+                            <span class="fs-1">🎬</span>
+                        </div>
+                    }
+
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">@favorite.MovieTitle</h5>
+
+                        <div class="mb-2">
+                            @if (favorite.MovieRating > 0)
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    ⭐ @favorite.MovieRating.ToString("F1")
+                                </span>
+                            }
+                        </div>
+
+                        <p class="card-text flex-grow-1">
+                            @(favorite.MovieOverview.Length > 100 ? favorite.MovieOverview.Substring(0, 100) + "..." : favorite.MovieOverview)
+                        </p>
+
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                ❤️ Favoritado em @favorite.FormattedAddedDate
+                            </small>
+                        </div>
+
+                        <div class="mt-auto d-flex gap-2">
+                            <a asp-controller="Movies" asp-action="Details" asp-route-id="@favorite.MovieId"
+                               class="btn btn-primary btn-sm flex-grow-1">
+                                Ver Detalhes
+                            </a>
+                            <button class="btn btn-outline-danger btn-sm"
+                                    onclick="toggleFavorite(@favorite.MovieId, this)"
+                                    title="Remover dos favoritos">
+                                💔
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="text-center mt-4">
+        <a asp-controller="Movies" asp-action="Index" class="btn btn-outline-primary">
+            🔍 Descobrir Mais Filmes
+        </a>
+    </div>
+}
+else
+{
+    <div class="text-center py-5">
+        <div class="display-1 text-muted">💔</div>
+        <h3 class="text-muted">Você ainda não tem filmes favoritos</h3>
+        <p class="text-muted">Explore nossa coleção e adicione filmes aos seus favoritos!</p>
+        <a asp-controller="Movies" asp-action="Index" class="btn btn-primary">
+            🎬 Explorar Filmes
+        </a>
+    </div>
+}
+
+<script>
+    async function toggleFavorite(movieId, button) {
+        try {
+            const response = await fetch('/Rating/ToggleFavorite', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `movieId=${movieId}`
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                const card = button.closest('.col-lg-3, .col-md-4, .col-sm-6');
+                card.style.transition = 'opacity 0.3s ease';
+                card.style.opacity = '0';
+
+                setTimeout(() => {
+                    card.remove();
+
+                    const remainingCards = document.querySelectorAll('.movie-card').length;
+                    if (remainingCards === 0) {
+                        location.reload(); 
+                    } else {
+                        const counter = document.querySelector('.text-muted small');
+                        if (counter) {
+                            const newCount = remainingCards;
+                            counter.textContent = `${newCount} filme(s) favorito(s)`;
+                        }
+                    }
+                }, 300);
+
+                showToast(result.message, 'success');
+            } else {
+                showToast(result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Erro:', error);
+            showToast('Erro ao remover favorito. Tente novamente.', 'error');
+        }
+    }
+
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+        toast.innerHTML = `
+                    <strong>${type === 'success' ? '✅' : '❌'}</strong> ${message}
+                    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+                `;
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 3000);
+    }
+</script>

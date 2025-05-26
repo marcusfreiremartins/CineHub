@@ -1,0 +1,164 @@
+﻿@model CineHub.Models.ViewModels.RateMovieViewModel
+@{
+    ViewData["Title"] = $"Avaliar - {Model.MovieTitle}";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h3 class="mb-0">⭐ Avaliar Filme</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        @if (!string.IsNullOrEmpty(Model.MoviePosterPath))
+                        {
+                            <img src="@Model.ImageBaseUrl@Model.MoviePosterPath"
+                                 class="img-fluid rounded shadow" alt="@Model.MovieTitle">
+                        }
+                        else
+                        {
+                            <div class="bg-light text-center rounded d-flex align-items-center justify-content-center"
+                                 style="height: 300px;">
+                                <span class="fs-1 text-muted">🎬</span>
+                            </div>
+                        }
+                    </div>
+                    <div class="col-md-9">
+                        <h4>@Model.MovieTitle</h4>
+
+                        <form asp-action="RateMovie" method="post">
+                            <input type="hidden" asp-for="MovieId" />
+                            <input type="hidden" asp-for="MovieTitle" />
+                            <input type="hidden" asp-for="MoviePosterPath" />
+                            <input type="hidden" asp-for="ExistingRatingId" />
+
+                            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                            <div class="mb-4">
+                                <label asp-for="Rating" class="form-label h5">Sua Nota (1-10)</label>
+                                <div class="rating-container mb-2">
+                                    @for (int i = 1; i <= 10; i++)
+                                    {
+                                        <label class="rating-star">
+                                            <input type="radio" asp-for="Rating" value="@i" />
+                                            <span class="star" data-value="@i">⭐</span>
+                                        </label>
+                                    }
+                                </div>
+                                <span asp-validation-for="Rating" class="text-danger"></span>
+                                <div class="form-text">Clique nas estrelas para dar sua nota</div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label asp-for="Comment" class="form-label">Comentário (Opcional)</label>
+                                <textarea asp-for="Comment" class="form-control" rows="4"
+                                          placeholder="Conte o que achou do filme..."></textarea>
+                                <span asp-validation-for="Comment" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input asp-for="IsFavorite" class="form-check-input" />
+                                    <label asp-for="IsFavorite" class="form-check-label">
+                                        ❤️ Adicionar aos meus favoritos
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-warning btn-lg">
+                                    @if (Model.ExistingRatingId.HasValue)
+                                    {
+                                        <span>📝 Atualizar Avaliação</span>
+                                    }
+                                    else
+                                    {
+                                        <span>⭐ Avaliar Filme</span>
+                                    }
+                                </button>
+                                <a asp-controller="Movies" asp-action="Details" asp-route-id="@Model.MovieId"
+                                   class="btn btn-secondary btn-lg">
+                                    Cancelar
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rating-container {
+        display: flex;
+        gap: 5px;
+    }
+
+    .rating-star {
+        cursor: pointer;
+        font-size: 1.5rem;
+    }
+
+        .rating-star input {
+            display: none;
+        }
+
+        .rating-star .star {
+            color: #ddd;
+            transition: color 0.2s;
+        }
+
+        .rating-star:hover .star,
+        .rating-star input:checked ~ .star,
+        .rating-star:hover ~ .rating-star .star {
+            color: #ffc107;
+        }
+
+        .rating-star input:checked ~ .star {
+            color: #ffc107;
+        }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const stars = document.querySelectorAll('.rating-star');
+        const currentRating = @Model.Rating;
+
+        function highlightStars(rating) {
+            stars.forEach((star, index) => {
+                const starElement = star.querySelector('.star');
+                if (index < rating) {
+                    starElement.style.color = '#ffc107';
+                } else {
+                    starElement.style.color = '#ddd';
+                }
+            });
+        }
+
+        highlightStars(currentRating);
+
+        stars.forEach((star, index) => {
+            star.addEventListener('mouseenter', () => {
+                highlightStars(index + 1);
+            });
+
+            star.addEventListener('click', () => {
+                highlightStars(index + 1);
+            });
+        });
+
+        const container = document.querySelector('.rating-container');
+        container.addEventListener('mouseleave', () => {
+            const checkedInput = document.querySelector('input[name="Rating"]:checked');
+            const checkedValue = checkedInput ? parseInt(checkedInput.value) : currentRating;
+            highlightStars(checkedValue);
+        });
+    });
+</script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

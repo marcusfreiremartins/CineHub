@@ -69,9 +69,11 @@
             <a asp-controller="Movies" asp-action="Index" class="btn btn-secondary">
                 ← Voltar para Filmes
             </a>
-            <button class="btn btn-success" onclick="alert('Funcionalidade em desenvolvimento!')">
+
+            <a asp-controller="Rating" asp-action="RateMovie" asp-route-movieId="@Model.Movie.Id" class="btn btn-success">
                 ⭐ Avaliar Filme
-            </button>
+            </a>
+
             <button class="btn btn-primary" onclick="alert('Funcionalidade em desenvolvimento!')">
                 📝 Comentar
             </button>

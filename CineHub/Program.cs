@@ -16,6 +16,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddHttpClient<TMDbService>();
 builder.Services.AddScoped<MovieService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<RatingService>();
 
 builder.Services.AddSession(options =>
 {
