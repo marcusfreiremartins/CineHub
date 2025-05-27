@@ -4,7 +4,7 @@
 
 ## 🧰 Tecnologias e Ferramentas Utilizadas
 
-- **Framework**: ASP.NET Core MVC (.NET 6+)
+- **Framework**: ASP.NET Core MVC (.NET 7+)
 - **Frontend**: Razor Pages, HTML5, CSS3, JavaScript
 - **Backend**: C#
 - **ORM**: Entity Framework Core
