@@ -13,6 +13,7 @@ namespace CineHub.Models.ViewModels
         public string Password { get; set; } = string.Empty;
 
         public bool RememberMe { get; set; }
+
         public string? ReturnUrl { get; set; }
     }
 
@@ -41,20 +42,30 @@ namespace CineHub.Models.ViewModels
     public class UserProfileViewModel : BaseViewModel
     {
         public int Id { get; set; }
+
         public string Name { get; set; } = string.Empty;
+
         public string Email { get; set; } = string.Empty;
+
         public DateTime CreatedAt { get; set; }
+
         public int TotalRatings { get; set; }
+
         public int TotalFavorites { get; set; }
+
         public double AverageRating { get; set; }
+
         public List<UserRating> RecentRatings { get; set; } = new();
+
         public List<UserFavorite> RecentFavorites { get; set; } = new();
     }
 
     public class RateMovieViewModel
     {
         public int MovieId { get; set; }
+
         public string MovieTitle { get; set; } = string.Empty;
+
         public string MoviePosterPath { get; set; } = string.Empty;
 
         [Range(1, 10, ErrorMessage = "A nota deve ser entre 1 e 10")]
@@ -64,7 +75,11 @@ namespace CineHub.Models.ViewModels
         public string? Comment { get; set; }
 
         public bool IsFavorite { get; set; }
+
         public int? ExistingRatingId { get; set; }
+
         public string ImageBaseUrl { get; set; } = string.Empty;
+
+        public string? ReturnUrl { get; set; }
     }
 }

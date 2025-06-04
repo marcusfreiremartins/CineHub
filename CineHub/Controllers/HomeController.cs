@@ -29,7 +29,7 @@ namespace CineHub.Controllers
                     ImageBaseUrl = _imageSettings.BaseUrl
                 };
 
-                // Mensagem de boas-vindas para novos usuários (opcional)
+                // Mensagem de boas-vindas para novos usuários
                 if (IsUserLoggedIn() && TempData["IsNewUser"] != null)
                 {
                     var userName = HttpContext.Session.GetString("UserName");

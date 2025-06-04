@@ -52,7 +52,9 @@
                                             <ul class="dropdown-menu dropdown-menu-end">
                                                 <li>
                                                     <a class="dropdown-item"
-                                                       asp-controller="Rating" asp-action="RateMovie" asp-route-movieId="@rating.MovieId">
+                                                       asp-controller="Rating" asp-action="RateMovie"
+                                                       asp-route-movieId="@rating.MovieId"
+                                                       asp-route-returnUrl="@Url.Action("MyRatings", "Account")">
                                                         ✏️ Editar Avaliação
                                                     </a>
                                                 </li>
@@ -209,9 +211,9 @@ else
         toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
         toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
         toast.innerHTML = `
-                    <strong>${type === 'success' ? '✅' : '❌'}</strong> ${message}
-                    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-                `;
+                        <strong>${type === 'success' ? '✅' : '❌'}</strong> ${message}
+                        <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+                    `;
 
         document.body.appendChild(toast);
 

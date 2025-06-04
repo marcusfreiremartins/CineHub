@@ -21,14 +21,14 @@ namespace CineHub.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> RateMovie(int movieId)
+        public async Task<IActionResult> RateMovie(int movieId, string returnUrl = null)
         {
             if (!IsUserLoggedIn())
             {
                 ShowWarning("Você precisa fazer login para avaliar filmes! 🔑");
                 TempData["PendingMovieId"] = movieId;
-                var returnUrl = Url.Action("RateMovie", "Rating", new { movieId = movieId });
-                return RedirectToAction("Login", "Account", new { returnUrl = returnUrl });
+                var loginReturnUrl = Url.Action("RateMovie", "Rating", new { movieId = movieId, returnUrl = returnUrl });
+                return RedirectToAction("Login", "Account", new { returnUrl = loginReturnUrl });
             }
 
             var movie = await _movieService.GetMovieByIdAsync(movieId);
@@ -51,7 +51,8 @@ namespace CineHub.Controllers
                 Comment = existingRating?.Comment,
                 IsFavorite = isFavorite,
                 ExistingRatingId = existingRating?.Id,
-                ImageBaseUrl = _imageSettings.BaseUrl
+                ImageBaseUrl = _imageSettings.BaseUrl,
+                ReturnUrl = returnUrl
             };
 
             return View("~/Views/User/RateMovie.cshtml", viewModel);
@@ -96,6 +97,12 @@ namespace CineHub.Controllers
                     {
                         ShowSuccess("Avaliação salva com sucesso! ⭐");
                     }
+
+                    if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+                    {
+                        return Redirect(model.ReturnUrl);
+                    }
+
                     return RedirectToAction("Details", "Movies", new { id = model.MovieId });
                 }
 
