@@ -225,10 +225,10 @@
                             @if (Context.Session.GetInt32("UserId") != null)
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Account" asp-action="Favorites">❤️ Favoritos</a>
+                                    <a class="nav-link" asp-controller="User" asp-action="Favorites">❤️ Favoritos</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Account" asp-action="MyRatings">⭐ Minhas Avaliações</a>
+                                    <a class="nav-link" asp-controller="User" asp-action="MyRatings">⭐ Minhas Avaliações</a>
                                 </li>
                             }
                         </ul>
@@ -241,23 +241,23 @@
                                     </a>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li>
-                                            <a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                                            <a class="dropdown-item" asp-controller="User" asp-action="Profile">
                                                 🏠 Meu Perfil
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" asp-controller="Account" asp-action="MyRatings">
+                                            <a class="dropdown-item" asp-controller="User" asp-action="MyRatings">
                                                 ⭐ Minhas Avaliações
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" asp-controller="Account" asp-action="Favorites">
+                                            <a class="dropdown-item" asp-controller="User" asp-action="Favorites">
                                                 ❤️ Meus Favoritos
                                             </a>
                                         </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                            <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
                                                 <button type="submit" class="dropdown-item">
                                                     🚪 Sair
                                                 </button>
@@ -269,10 +269,10 @@
                             else
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Account" asp-action="Login">🔑 Entrar</a>
+                                    <a class="nav-link" asp-controller="Auth" asp-action="Login">🔑 Entrar</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" asp-controller="Account" asp-action="Register">✨ Registrar</a>
+                                    <a class="nav-link" asp-controller="Auth" asp-action="Register">✨ Registrar</a>
                                 </li>
                             }
                         </ul>

@@ -4,6 +4,7 @@ using CineHub.Models.ViewModels;
 using CineHub.Configuration;
 using Microsoft.Extensions.Options;
 using CineHub.Models;
+using CineHub.Models.ViewModels.Movies;
 
 namespace CineHub.Controllers
 {
@@ -28,7 +29,7 @@ namespace CineHub.Controllers
                 ShowWarning("Você precisa fazer login para avaliar filmes! 🔑");
                 TempData["PendingMovieId"] = movieId;
                 var loginReturnUrl = Url.Action("RateMovie", "Rating", new { movieId = movieId, returnUrl = returnUrl });
-                return RedirectToAction("Login", "Account", new { returnUrl = loginReturnUrl });
+                return RedirectToAction("Login", "Auth", new { returnUrl = loginReturnUrl });
             }
 
             var movie = await _movieService.GetMovieByIdAsync(movieId);
@@ -50,7 +51,7 @@ namespace CineHub.Controllers
                 Rating = existingRating?.Rating ?? 5,
                 Comment = existingRating?.Comment,
                 IsFavorite = isFavorite,
-                ExistingRatingId = existingRating?.Id,
+                UserRatingId = existingRating?.Id,
                 ImageBaseUrl = _imageSettings.BaseUrl,
                 ReturnUrl = returnUrl
             };
@@ -64,7 +65,7 @@ namespace CineHub.Controllers
             if (!IsUserLoggedIn())
             {
                 ShowWarning("Sessão expirada. Faça login novamente.");
-                return RedirectToAction("Login", "Account");
+                return RedirectToAction("Login", "Auth");
             }
 
             if (!ModelState.IsValid)

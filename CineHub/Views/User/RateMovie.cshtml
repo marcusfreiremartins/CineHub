@@ -1,4 +1,4 @@
-﻿@model CineHub.Models.ViewModels.RateMovieViewModel
+﻿@model CineHub.Models.ViewModels.Movies.RateMovieViewModel
 @{
     ViewData["Title"] = $"Avaliar - {Model.MovieTitle}";
 }
@@ -32,7 +32,7 @@
                             <input type="hidden" asp-for="MovieId" />
                             <input type="hidden" asp-for="MovieTitle" />
                             <input type="hidden" asp-for="MoviePosterPath" />
-                            <input type="hidden" asp-for="ExistingRatingId" />
+                            <input type="hidden" asp-for="UserRatingId" />
                             <input type="hidden" asp-for="ReturnUrl" />
 
                             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
@@ -70,7 +70,7 @@
 
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn btn-warning btn-lg">
-                                    @if (Model.ExistingRatingId.HasValue)
+                                    @if (Model.UserRatingId.HasValue)
                                     {
                                         <span>📝 Atualizar Avaliação</span>
                                     }

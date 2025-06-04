@@ -4,6 +4,7 @@ using CineHub.Models.ViewModels;
 using CineHub.Models;
 using CineHub.Configuration;
 using Microsoft.Extensions.Options;
+using CineHub.Models.ViewModels.Movies;
 
 namespace CineHub.Controllers
 {
