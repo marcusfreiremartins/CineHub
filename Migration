@@ -1,14 +1,35 @@
--- Table: public.Movies
+-- Criar sequências para as tabelas
+CREATE SEQUENCE IF NOT EXISTS public."Movies_Id_seq" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS public."Users_Id_seq" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS public."UserFavorites_Id_seq" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
+CREATE SEQUENCE IF NOT EXISTS public."UserRatings_Id_seq" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;
 
--- DROP TABLE IF EXISTS public."Movies";
+-- Tabela Users (deve ser criada primeiro pois outras dependem dela)
+CREATE TABLE IF NOT EXISTS public."Users"
+(
+    "Id" integer NOT NULL DEFAULT nextval('public."Users_Id_seq"'::regclass),
+    "Name" character varying(100) NOT NULL,
+    "Email" character varying(200) NOT NULL,
+    "PasswordHash" text NOT NULL,
+    "CreatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "LastLogin" timestamp without time zone,
+    "DeletionDate" timestamp without time zone,
+    CONSTRAINT "Users_pkey" PRIMARY KEY ("Id"),
+    CONSTRAINT "Users_Email_key" UNIQUE ("Email")
+)
+TABLESPACE pg_default;
 
+ALTER TABLE IF EXISTS public."Users" OWNER to postgres;
+
+
+-- Tabela Movies
 CREATE TABLE IF NOT EXISTS public."Movies"
 (
-    "Id" integer NOT NULL DEFAULT nextval('"Movies_Id_seq"'::regclass),
+    "Id" integer NOT NULL DEFAULT nextval('public."Movies_Id_seq"'::regclass),
     "TMDbId" integer NOT NULL,
-    "Title" character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    "Overview" text COLLATE pg_catalog."default",
-    "PosterPath" character varying(500) COLLATE pg_catalog."default",
+    "Title" character varying(255) NOT NULL,
+    "Overview" text,
+    "PosterPath" character varying(500),
     "VoteAverage" double precision,
     "VoteCount" integer,
     "ReleaseDate" timestamp without time zone,
@@ -16,99 +37,47 @@ CREATE TABLE IF NOT EXISTS public."Movies"
     CONSTRAINT "Movies_pkey" PRIMARY KEY ("Id"),
     CONSTRAINT "Movies_TMDbId_key" UNIQUE ("TMDbId")
 )
-
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS public."Movies"
-    OWNER to postgres;
+ALTER TABLE IF EXISTS public."Movies" OWNER to postgres;
 
 
-
--- Table: public.UserFavorites
-
--- DROP TABLE IF EXISTS public."UserFavorites";
-
+-- Tabela UserFavorites
 CREATE TABLE IF NOT EXISTS public."UserFavorites"
 (
-    "Id" integer NOT NULL DEFAULT nextval('"UserFavorites_Id_seq"'::regclass),
+    "Id" integer NOT NULL DEFAULT nextval('public."UserFavorites_Id_seq"'::regclass),
     "UserId" integer NOT NULL,
     "MovieId" integer NOT NULL,
     "CreatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "DeletionDate" timestamp without time zone,
     CONSTRAINT "UserFavorites_pkey" PRIMARY KEY ("Id"),
     CONSTRAINT "FK_UserFavorites_Movies" FOREIGN KEY ("MovieId")
-        REFERENCES public."Movies" ("Id") MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE CASCADE,
+        REFERENCES public."Movies" ("Id") ON DELETE CASCADE,
     CONSTRAINT "FK_UserFavorites_Users" FOREIGN KEY ("UserId")
-        REFERENCES public."Users" ("Id") MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE CASCADE
+        REFERENCES public."Users" ("Id") ON DELETE CASCADE
 )
-
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS public."UserFavorites"
-    OWNER to postgres;
+ALTER TABLE IF EXISTS public."UserFavorites" OWNER to postgres;
 
 
-
-
--- Table: public.UserRatings
-
--- DROP TABLE IF EXISTS public."UserRatings";
-
+-- Tabela UserRatings
 CREATE TABLE IF NOT EXISTS public."UserRatings"
 (
-    "Id" integer NOT NULL DEFAULT nextval('"UserRatings_Id_seq"'::regclass),
+    "Id" integer NOT NULL DEFAULT nextval('public."UserRatings_Id_seq"'::regclass),
     "UserId" integer NOT NULL,
     "MovieId" integer NOT NULL,
-    "Rating" integer NOT NULL,
-    "Comment" text COLLATE pg_catalog."default",
+    "Rating" integer NOT NULL CHECK ("Rating" >= 1 AND "Rating" <= 10),
+    "Comment" text,
     "CreatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "UpdatedAt" timestamp without time zone,
     "DeletionDate" timestamp without time zone,
     CONSTRAINT "UserRatings_pkey" PRIMARY KEY ("Id"),
     CONSTRAINT "FK_UserRatings_Movies" FOREIGN KEY ("MovieId")
-        REFERENCES public."Movies" ("Id") MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE CASCADE,
+        REFERENCES public."Movies" ("Id") ON DELETE CASCADE,
     CONSTRAINT "FK_UserRatings_Users" FOREIGN KEY ("UserId")
-        REFERENCES public."Users" ("Id") MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE CASCADE,
-    CONSTRAINT "UserRatings_Rating_check" CHECK ("Rating" >= 1 AND "Rating" <= 10)
+        REFERENCES public."Users" ("Id") ON DELETE CASCADE
 )
-
 TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS public."UserRatings"
-    OWNER to postgres;
-
-
-
-
--- Table: public.Users
-
--- DROP TABLE IF EXISTS public."Users";
-
-CREATE TABLE IF NOT EXISTS public."Users"
-(
-    "Id" integer NOT NULL DEFAULT nextval('"User_Id_seq"'::regclass),
-    "Name" character varying(100) COLLATE pg_catalog."default" NOT NULL,
-    "Email" character varying(200) COLLATE pg_catalog."default" NOT NULL,
-    "PasswordHash" text COLLATE pg_catalog."default" NOT NULL,
-    "CreatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "LastLogin" timestamp without time zone,
-    "DeletionDate" timestamp without time zone,
-    CONSTRAINT "User_pkey" PRIMARY KEY ("Id"),
-    CONSTRAINT "User_Email_key" UNIQUE ("Email")
-)
-
-TABLESPACE pg_default;
-
-ALTER TABLE IF EXISTS public."Users"
-    OWNER to postgres;
-
-
-
+ALTER TABLE IF EXISTS public."UserRatings" OWNER to postgres;
