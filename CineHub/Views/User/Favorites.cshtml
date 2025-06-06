@@ -88,64 +88,7 @@ else
     </div>
 }
 
-<script>
-    async function toggleFavorite(movieId, button) {
-        try {
-            const response = await fetch('/Rating/ToggleFavorite', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `movieId=${movieId}`
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                const card = button.closest('.col-lg-3, .col-md-4, .col-sm-6');
-                card.style.transition = 'opacity 0.3s ease';
-                card.style.opacity = '0';
-
-                setTimeout(() => {
-                    card.remove();
-
-                    const remainingCards = document.querySelectorAll('.movie-card').length;
-                    if (remainingCards === 0) {
-                        location.reload(); 
-                    } else {
-                        const counter = document.querySelector('.text-muted small');
-                        if (counter) {
-                            const newCount = remainingCards;
-                            counter.textContent = `${newCount} filme(s) favorito(s)`;
-                        }
-                    }
-                }, 300);
-
-                showToast(result.message, 'success');
-            } else {
-                showToast(result.message, 'error');
-            }
-        } catch (error) {
-            console.error('Erro:', error);
-            showToast('Erro ao remover favorito. Tente novamente.', 'error');
-        }
-    }
-
-    function showToast(message, type) {
-        const toast = document.createElement('div');
-        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
-        toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
-        toast.innerHTML = `
-                    <strong>${type === 'success' ? '✅' : '❌'}</strong> ${message}
-                    <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-                `;
-
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            if (toast.parentElement) {
-                toast.remove();
-            }
-        }, 3000);
-    }
-</script>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/pages/favorites.js"></script>
+}

@@ -3,6 +3,10 @@
     ViewData["Title"] = $"Avaliar - {Model.MovieTitle}";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/rate-movie.css" asp-append-version="true" />
+}
+
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card shadow">
@@ -39,7 +43,7 @@
 
                             <div class="mb-4">
                                 <label asp-for="Rating" class="form-label h5">Sua Nota (1-10)</label>
-                                <div class="rating-container mb-2">
+                                <div class="rating-container mb-2" data-current-rating="@Model.Rating">
                                     @for (int i = 1; i <= 10; i++)
                                     {
                                         <label class="rating-badge">
@@ -92,122 +96,7 @@
     </div>
 </div>
 
-<style>
-    .rating-container {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-
-    .rating-badge {
-        cursor: pointer;
-        transition: transform 0.2s ease;
-    }
-
-    .rating-badge:hover {
-        transform: scale(1.1);
-    }
-
-    .rating-badge input {
-        display: none;
-    }
-
-    .rating-badge .badge {
-        transition: all 0.3s ease;
-        user-select: none;
-        min-width: 35px;
-        text-align: center;
-        border: 2px solid transparent;
-    }
-
-    .rating-badge .badge:hover {
-        background-color: #0d6efd !important;
-        border-color: #0d6efd;
-        box-shadow: 0 0 10px rgba(13, 110, 253, 0.4);
-    }
-
-    .rating-badge input:checked + .badge {
-        background-color: #0d6efd !important;
-        border-color: #0d6efd;
-        box-shadow: 0 0 15px rgba(13, 110, 253, 0.6);
-    }
-
-    /* Efeito de preenchimento progressivo ao hover */
-    .rating-container:hover .rating-badge .badge {
-        background-color: #6c757d !important;
-    }
-
-    .rating-container .rating-badge:hover .badge,
-    .rating-container .rating-badge:hover ~ .rating-badge .badge {
-        background-color: #6c757d !important;
-    }
-
-    .rating-container .rating-badge:hover .badge {
-        background-color: #0d6efd !important;
-    }
-
-    /* Preenchimento dos badges anteriores ao hover */
-    .rating-badge:hover ~ .rating-badge .badge {
-        background-color: #6c757d !important;
-    }
-
-    /* Responsive */
-    @@media (max-width: 576px) {
-        .rating-container {
-            gap: 5px;
-        }
-        
-        .rating-badge .badge {
-            min-width: 30px;
-            font-size: 0.875rem;
-        }
-    }
-</style>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const badges = document.querySelectorAll('.rating-badge');
-        const container = document.querySelector('.rating-container');
-        const currentRating = @Model.Rating;
-
-        function highlightBadges(rating) {
-            badges.forEach((badgeLabel, index) => {
-                const badge = badgeLabel.querySelector('.badge');
-                if (index < rating) {
-                    badge.classList.remove('bg-secondary');
-                    badge.classList.add('bg-primary');
-                } else {
-                    badge.classList.remove('bg-primary');
-                    badge.classList.add('bg-secondary');
-                }
-            });
-        }
-
-        // Destacar a nota atual
-        highlightBadges(currentRating);
-
-        // Efeito hover
-        badges.forEach((badgeLabel, index) => {
-            badgeLabel.addEventListener('mouseenter', () => {
-                highlightBadges(index + 1);
-            });
-
-            badgeLabel.addEventListener('click', () => {
-                const input = badgeLabel.querySelector('input');
-                input.checked = true;
-                highlightBadges(index + 1);
-            });
-        });
-
-        // Restaurar ao sair do container
-        container.addEventListener('mouseleave', () => {
-            const checkedInput = document.querySelector('input[name="Rating"]:checked');
-            const checkedValue = checkedInput ? parseInt(checkedInput.value) : currentRating;
-            highlightBadges(checkedValue);
-        });
-    });
-</script>
-
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/pages/rate-movie.js"></script>
 }

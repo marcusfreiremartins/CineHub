@@ -30,6 +30,7 @@ namespace CineHub.Services
                     existingRating.Rating = rating;
                     existingRating.Comment = comment;
                     existingRating.UpdatedAt = DateTime.UtcNow;
+                    existingRating.DeletionDate = null;
                 }
                 else
                 {
@@ -204,12 +205,23 @@ namespace CineHub.Services
             try
             {
                 var existingRating = await _context.UserRatings
-                    .FirstOrDefaultAsync(r => r.UserId == userId && r.MovieId == movieId);
-                if (existingRating != null && existingRating.DeletionDate == null)
+                    .FirstOrDefaultAsync(r => r.UserId == userId && r.MovieId == movieId && r.DeletionDate == null);
+
+                var existingFavorite = await _context.UserFavorites
+                    .FirstOrDefaultAsync(r => r.UserId == userId && r.MovieId == movieId && r.DeletionDate == null);
+
+                if (existingRating != null && existingFavorite == null)
                 {
                     existingRating.DeletionDate = DateTime.UtcNow;
                     await _context.SaveChangesAsync();
                     return (true, "Avaliação excluida");
+                }
+                if(existingFavorite != null && existingRating != null)
+                {
+                    existingFavorite.DeletionDate = DateTime.UtcNow;
+                    existingRating.DeletionDate = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                    return (true, "Avaliação excluida e removido dos favoritos");
                 }
                 else
                 {

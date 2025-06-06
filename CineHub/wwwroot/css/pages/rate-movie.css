@@ -1,0 +1,65 @@
+﻿/* Container principal do sistema de rating */
+.rating-container {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Badge de rating individual */
+.rating-badge {
+    cursor: pointer;
+    transition: transform var(--transition-standard);
+}
+
+    .rating-badge:hover {
+        transform: scale(1.1);
+    }
+
+    /* Input oculto */
+    .rating-badge input {
+        display: none;
+    }
+
+    /* Estilos do badge */
+    .rating-badge .badge {
+        transition: all var(--transition-standard);
+        user-select: none;
+        min-width: 35px;
+        text-align: center;
+        border: 2px solid transparent;
+    }
+
+        /* Hover em badge individual */
+        .rating-badge .badge:hover {
+            background-color: var(--primary-blue) !important;
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-blue);
+        }
+
+    /* Badge selecionado */
+    .rating-badge input:checked + .badge {
+        background-color: var(--primary-blue) !important;
+        border-color: var(--primary-blue);
+        box-shadow: var(--shadow-blue-strong);
+    }
+
+/* Efeito de preenchimento progressivo ao hover */
+.rating-container:hover .rating-badge .badge {
+    background-color: var(--secondary-gray) !important;
+}
+
+.rating-container .rating-badge:hover .badge {
+    background-color: var(--primary-blue) !important;
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 576px) {
+    .rating-container {
+        gap: 5px;
+    }
+
+    .rating-badge .badge {
+        min-width: 30px;
+        font-size: 0.875rem;
+    }
+}

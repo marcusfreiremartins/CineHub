@@ -25,7 +25,7 @@ namespace CineHub.Controllers
             }
 
             ViewData["ReturnUrl"] = returnUrl;
-            return View("~/Views/User/Login.cshtml");
+            return View("~/Views/Account/Login.cshtml");
         }
 
         [HttpPost]
@@ -33,7 +33,7 @@ namespace CineHub.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View("~/Views/User/Login.cshtml", model);
+                return View("~/Views/Account/Login.cshtml", model);
             }
 
             var result = await _authService.LoginAsync(model.Email, model.Password);
@@ -55,7 +55,7 @@ namespace CineHub.Controllers
             }
 
             ModelState.AddModelError("", result.Message);
-            return View("~/Views/User/Login.cshtml", model);
+            return View("~/Views/Account/Login.cshtml", model);
         }
 
         [HttpGet]
@@ -66,7 +66,7 @@ namespace CineHub.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            return View("~/Views/User/Register.cshtml");
+            return View("~/Views/Account/Register.cshtml");
         }
 
         [HttpPost]
@@ -74,7 +74,7 @@ namespace CineHub.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View("~/Views/User/Register.cshtml", model);
+                return View("~/Views/Account/Register.cshtml", model);
             }
 
             var result = await _authService.RegisterAsync(model.Name, model.Email, model.Password);
@@ -90,7 +90,7 @@ namespace CineHub.Controllers
             }
 
             ModelState.AddModelError("", result.Message);
-            return View("~/Views/User/Register.cshtml", model);
+            return View("~/Views/Account/Register.cshtml", model);
         }
 
         [HttpPost]

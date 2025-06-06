@@ -162,65 +162,7 @@ else
         }
 </style>
 
-<script>
-    let movieIdToDelete = null;
-
-    function confirmDeleteRating(movieId, movieTitle) {
-        movieIdToDelete = movieId;
-        document.getElementById('movieTitle').textContent = movieTitle;
-
-        const modal = new bootstrap.Modal(document.getElementById('deleteRatingModal'));
-        modal.show();
-    }
-
-    document.getElementById('confirmDeleteBtn').addEventListener('click', async function () {
-        if (!movieIdToDelete) return;
-
-        try {
-            const response = await fetch('/Rating/DeleteRating', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `movieId=${movieIdToDelete}`  // envia só movieId
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                // Fecha o modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteRatingModal'));
-                modal.hide();
-
-                location.reload();
-
-                showToast(result.message, 'success');
-            } else {
-                showToast(result.message, 'danger');
-            }
-        } catch (error) {
-            console.error('Erro:', error);
-            showToast('Erro ao excluir avaliação. Tente novamente.', 'danger');
-        }
-
-        movieIdToDelete = null;
-    });
-
-    function showToast(message, type) {
-        const toast = document.createElement('div');
-        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
-        toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
-        toast.innerHTML = `
-                        <strong>${type === 'success' ? '✅' : '❌'}</strong> ${message}
-                        <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
-                    `;
-
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            if (toast.parentElement) {
-                toast.remove();
-            }
-        }, 3000);
-    }
-</script>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/pages/my-ratings.js"></script>
+}

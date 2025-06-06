@@ -49,17 +49,11 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-
-        @if (ViewBag.ShowWelcomeMessage == true)
-        {
-            <text>
-                document.addEventListener('DOMContentLoaded', function () {
-                    setTimeout(() => {
-                        showToast('Faça login para acessar todas as funcionalidades do CineHub! 🎬', 'info', 7000);
-                    }, 500);
-                });
-            </text>
-        }
-    </script>
+    <script src="~/js/pages/login.js" asp-append-version="true"></script>
+    @if (ViewBag.ShowWelcomeMessage == true)
+    {
+        <script>
+            document.body.setAttribute('data-show-welcome', 'true');
+        </script>
+    }
 }

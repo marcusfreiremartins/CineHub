@@ -56,7 +56,7 @@ namespace CineHub.Controllers
                 ReturnUrl = returnUrl
             };
 
-            return View("~/Views/User/RateMovie.cshtml", viewModel);
+            return View("~/Views/Rating/RateMovie.cshtml", viewModel);
         }
 
         [HttpPost]
@@ -78,7 +78,7 @@ namespace CineHub.Controllers
                     model.ImageBaseUrl = _imageSettings.BaseUrl;
                 }
                 ShowError("Verifique os dados informados.");
-                return View("~/Views/User/RateMovie.cshtml", model);
+                return View("~/Views/Rating/RateMovie.cshtml", model);
             }
 
             var userId = GetCurrentUserId();
@@ -115,7 +115,7 @@ namespace CineHub.Controllers
                 ShowError("Erro inesperado ao salvar avaliação. Tente novamente.");
             }
 
-            return View("~/Views/User/RateMovie.cshtml", model);
+            return View("~/Views/Rating/RateMovie.cshtml", model);
         }
 
         [HttpPost]
@@ -143,19 +143,42 @@ namespace CineHub.Controllers
         {
             if (!IsUserLoggedIn())
             {
-                return Json(new { success = false, message = "Você precisa estar logado." });
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "Você precisa estar logado." });
+                }
+
+                TempData["ToastMessage"] = "Você precisa estar logado.";
+                TempData["ToastType"] = "error";
+                return RedirectToAction("Login", "Auth");
             }
 
             try
             {
                 var userId = GetCurrentUserId();
                 var result = await _ratingService.DeleteRating(userId, movieId);
-                return Json(new { success = result.Success, message = result.Message });
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = result.Success, message = result.Message });
+                }
+
+                TempData["ToastMessage"] = result.Message;
+                TempData["ToastType"] = result.Success ? "success" : "error";
+                return RedirectToAction("MyRatings", "User");
             }
             catch (Exception)
             {
-                return Json(new { success = false, message = "Erro ao excluir avaliação." });
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "Erro ao excluir avaliação." });
+                }
+
+                TempData["ToastMessage"] = "Erro ao excluir avaliação.";
+                TempData["ToastType"] = "error";
+                return RedirectToAction("MyRatings", "User");
             }
         }
+
     }
 }
