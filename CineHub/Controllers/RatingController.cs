@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CineHub.Services;
-using CineHub.Models.ViewModels;
 using CineHub.Configuration;
 using Microsoft.Extensions.Options;
-using CineHub.Models;
 using CineHub.Models.ViewModels.Movies;
 
 namespace CineHub.Controllers
@@ -21,8 +19,9 @@ namespace CineHub.Controllers
             _imageSettings = imageSettings.Value;
         }
 
+        // Displays the rating form for a specific movie
         [HttpGet]
-        public async Task<IActionResult> RateMovie(int movieId, string returnUrl = null)
+        public async Task<IActionResult> RateMovie(int movieId, string? returnUrl = null)
         {
             if (!IsUserLoggedIn())
             {
@@ -59,6 +58,7 @@ namespace CineHub.Controllers
             return View("~/Views/Rating/RateMovie.cshtml", viewModel);
         }
 
+        // Handles the submission of a movie rating
         [HttpPost]
         public async Task<IActionResult> RateMovie(RateMovieViewModel model)
         {
@@ -118,6 +118,7 @@ namespace CineHub.Controllers
             return View("~/Views/Rating/RateMovie.cshtml", model);
         }
 
+        // Toggles the favorite status of a movie for the logged-in user
         [HttpPost]
         public async Task<IActionResult> ToggleFavorite(int movieId)
         {
@@ -138,6 +139,7 @@ namespace CineHub.Controllers
             }
         }
 
+        // Deletes the user's rating for a specific movie
         [HttpPost]
         public async Task<IActionResult> DeleteRating(int movieId)
         {

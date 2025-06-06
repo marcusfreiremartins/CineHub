@@ -1,4 +1,5 @@
-﻿document.addEventListener('DOMContentLoaded', function () {
+﻿// Display a welcome toast shortly after page load if the 'data-show-welcome' attribute is set to true
+document.addEventListener('DOMContentLoaded', function () {
     const shouldShowWelcome = document.body.getAttribute('data-show-welcome');
 
     if (shouldShowWelcome === 'true') {

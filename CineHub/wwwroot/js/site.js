@@ -1,7 +1,7 @@
-﻿// Inicializações globais da aplicação
+﻿// Global application initializations on DOM ready
 document.addEventListener('DOMContentLoaded', function () {
 
-    // Verificar se o container de toast existe, se não, criar
+    // Check if toast container exists, create if not
     if (!document.getElementById('toast-container')) {
         const toastContainer = document.createElement('div');
         toastContainer.id = 'toast-container';
@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.appendChild(toastContainer);
     }
 
-    // Verificar se deve mostrar mensagem de boas-vindas
+    // Show welcome message if flag is set
     const shouldShowWelcome = document.body.getAttribute('data-show-welcome');
     if (shouldShowWelcome === 'true') {
         setTimeout(() => {

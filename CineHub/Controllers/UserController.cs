@@ -20,6 +20,7 @@ namespace CineHub.Controllers
             _imageSettings = imageSettings.Value;
         }
 
+        // Displays the user's profile information and recent activity
         [HttpGet]
         public async Task<IActionResult> Profile()
         {
@@ -59,8 +60,9 @@ namespace CineHub.Controllers
             return View("~/Views/User/UserProfile.cshtml", viewModel);
         }
 
+        // Shows a list of the user's favorite movies
         [HttpGet]
-        public async Task<IActionResult> Favorites()
+        public async Task<IActionResult> Favorites(bool deleted = false, string? message = null)
         {
             if (!IsUserLoggedIn())
             {
@@ -74,6 +76,11 @@ namespace CineHub.Controllers
             if (!favorites.Any())
             {
                 ShowInfo("Você ainda não tem filmes favoritos. Que tal explorar alguns filmes? 🎬");
+            }
+
+            if (deleted && !string.IsNullOrEmpty(message))
+            {
+                ShowSuccess(message);
             }
 
             var favoriteItems = favorites.Select(f => new FavoriteItemViewModel
@@ -90,8 +97,9 @@ namespace CineHub.Controllers
             return View("~/Views/User/Favorites.cshtml", favoriteItems);
         }
 
+        // Displays all movies rated by the user
         [HttpGet]
-        public async Task<IActionResult> MyRatings()
+        public async Task<IActionResult> MyRatings(bool deleted = false, string? message = null)
         {
             if (!IsUserLoggedIn())
             {
@@ -105,6 +113,11 @@ namespace CineHub.Controllers
             if (!ratings.Any())
             {
                 ShowInfo("Você ainda não avaliou nenhum filme. Que tal começar agora? ⭐");
+            }
+
+            if (deleted && !string.IsNullOrEmpty(message))
+            {
+                ShowSuccess(message);
             }
 
             var viewModelList = ratings.Select(r => new RatingItemViewModel

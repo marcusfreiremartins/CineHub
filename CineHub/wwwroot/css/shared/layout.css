@@ -1,9 +1,9 @@
-﻿/* Compensação para navbar fixa */
+﻿/* Compensation for fixed navbar */
 body {
     padding-top: var(--navbar-height);
 }
 
-/* Layout flexbox para footer sempre no final */
+/* Flexbox layout to keep footer at the bottom */
 html, body {
     height: 100%;
 }
@@ -18,14 +18,14 @@ html, body {
     flex: 1;
 }
 
-/* Footer otimizado */
+/* Optimized footer */
 .footer {
     background-color: var(--dark-bg) !important;
     color: var(--white) !important;
     margin-top: auto;
 }
 
-/* Responsividade para mobile */
+/* Mobile responsiveness */
 @media (max-width: 768px) {
     body {
         padding-top: var(--navbar-height-mobile);

@@ -16,9 +16,10 @@ namespace CineHub.Services
             _tmdbService = tmdbService;
         }
 
+        // Retrieves popular movies, first tries from the local database,
+        // if none found, fetches from the external TMDb API and saves them locally.
         public async Task<List<Movie>> GetPopularMoviesAsync(int page = 1)
         {
-            // Primeiro tenta buscar do banco
             //var moviesFromDb = await _context.Movies
                 //.OrderByDescending(m => m.VoteCount)
                 //.Take(20)
@@ -29,7 +30,6 @@ namespace CineHub.Services
                 //return moviesFromDb;
           //  }
 
-            // Se não tem no banco, busca da API
             var moviesFromApi = await _tmdbService.GetPopularMoviesAsync(page);
             var movies = new List<Movie>();
 
@@ -45,22 +45,26 @@ namespace CineHub.Services
             return movies;
         }
 
+        // Gets a movie by its local database ID
         public async Task<Movie?> GetMovieByIdAsync(int id)
         {
             return await _context.Movies.FindAsync(id);
         }
 
+        // Gets a movie by its TMDb external ID
         public async Task<Movie?> GetMovieByTMDbIdAsync(int tmdbId)
         {
             return await _context.Movies.FirstOrDefaultAsync(m => m.TMDbId == tmdbId);
         }
 
+        // Searches for movies by title query
+        // First tries to search in local database,
+        // if none found, queries TMDb API and saves new movies locally.
         public async Task<List<Movie>> SearchMoviesAsync(string query, int page = 1)
         {
             if (string.IsNullOrWhiteSpace(query))
                 return new List<Movie>();
 
-            // Busca no banco primeiro
            // var moviesFromDb = await _context.Movies
                // .Where(m => m.Title.Contains(query))
                // .Take(20)
@@ -71,7 +75,6 @@ namespace CineHub.Services
                // return moviesFromDb;
            // }
 
-            // Se não encontrou no banco, busca na API
             var moviesFromApi = await _tmdbService.SearchMoviesAsync(query, page);
             var movies = new List<Movie>();
 
@@ -87,6 +90,7 @@ namespace CineHub.Services
             return movies;
         }
 
+        // Checks if movie exists in DB by TMDbId, otherwise creates and saves it
         private async Task<Movie?> GetOrCreateMovieAsync(MovieDTO movieDto)
         {
             var existingMovie = await _context.Movies

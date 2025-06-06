@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CineHub.Services;
-using CineHub.Models.ViewModels;
 using CineHub.Models;
 using CineHub.Configuration;
 using Microsoft.Extensions.Options;
@@ -19,6 +18,7 @@ namespace CineHub.Controllers
             _imageSettings = imageSettings.Value;
         }
 
+        // Displays the home page with popular movies
         public async Task<IActionResult> Index()
         {
             try
@@ -30,7 +30,6 @@ namespace CineHub.Controllers
                     ImageBaseUrl = _imageSettings.BaseUrl
                 };
 
-                // Mensagem de boas-vindas para novos usuários
                 if (IsUserLoggedIn() && TempData["IsNewUser"] != null)
                 {
                     var userName = HttpContext.Session.GetString("UserName");
@@ -46,6 +45,7 @@ namespace CineHub.Controllers
             }
         }
 
+        // Handles movie search and displays results
         [HttpGet]
         public async Task<IActionResult> Search(string q = "", int page = 1)
         {

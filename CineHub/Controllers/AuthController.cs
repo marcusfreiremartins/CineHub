@@ -1,8 +1,5 @@
-﻿using CineHub.Models.ViewModels;
-using CineHub.Services;
+﻿using CineHub.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using CineHub.Configuration;
 using CineHub.Models.ViewModels.Account;
 
 namespace CineHub.Controllers
@@ -16,6 +13,7 @@ namespace CineHub.Controllers
             _authService = authService;
         }
 
+        // Displays the login page
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
@@ -28,6 +26,7 @@ namespace CineHub.Controllers
             return View("~/Views/Account/Login.cshtml");
         }
 
+        // Handles user login
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
@@ -58,6 +57,7 @@ namespace CineHub.Controllers
             return View("~/Views/Account/Login.cshtml", model);
         }
 
+        // Displays the registration page
         [HttpGet]
         public IActionResult Register()
         {
@@ -69,6 +69,7 @@ namespace CineHub.Controllers
             return View("~/Views/Account/Register.cshtml");
         }
 
+        // Handles user registration
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
@@ -93,6 +94,7 @@ namespace CineHub.Controllers
             return View("~/Views/Account/Register.cshtml", model);
         }
 
+        // Logs the user out
         [HttpPost]
         public IActionResult Logout()
         {

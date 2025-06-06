@@ -15,6 +15,7 @@ namespace CineHub.Services
             _apiKey = configuration["TMDb:ApiKey"] ?? "demo_key";
         }
 
+        // Fetches a paginated list of popular movies from TMDb API
         public async Task<List<MovieDTO>> GetPopularMoviesAsync(int page = 1)
         {
             try
@@ -38,6 +39,7 @@ namespace CineHub.Services
             return new List<MovieDTO>();
         }
 
+        // Retrieves detailed information for a movie by its TMDb ID
         public async Task<MovieDTO?> GetMovieDetailsAsync(int tmdbId)
         {
             try
@@ -60,6 +62,7 @@ namespace CineHub.Services
             return null;
         }
 
+        // Searches for movies by a query string using TMDb API
         public async Task<List<MovieDTO>> SearchMoviesAsync(string query, int page = 1)
         {
             if (string.IsNullOrWhiteSpace(query))

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CineHub.Services;
-using CineHub.Models.ViewModels;
 using CineHub.Models;
 using CineHub.Configuration;
 using Microsoft.Extensions.Options;
@@ -19,6 +18,7 @@ namespace CineHub.Controllers
             _imageSettings = imageSettings.Value;
         }
 
+        // Displays a list of movies, with optional search and pagination
         public async Task<IActionResult> Index(string search = "", int page = 1)
         {
             try
@@ -56,6 +56,7 @@ namespace CineHub.Controllers
             }
         }
 
+        // Displays detailed information about a specific movie
         public async Task<IActionResult> Details(int id)
         {
             try

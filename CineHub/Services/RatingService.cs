@@ -13,6 +13,7 @@ namespace CineHub.Services
             _context = context;
         }
 
+        // Rates a movie by a user, adding or updating the rating and optional comment
         public async Task<(bool Success, string Message)> RateMovieAsync(int userId, int movieId, int rating, string? comment = null)
         {
             if (rating < 1 || rating > 10)
@@ -54,6 +55,7 @@ namespace CineHub.Services
             }
         }
 
+        // Retrieves a user's rating for a specific movie, if it exists
         public async Task<UserRating?> GetUserRatingAsync(int userId, int movieId)
         {
             return await _context.UserRatings
@@ -61,31 +63,35 @@ namespace CineHub.Services
                 .FirstOrDefaultAsync(r => r.UserId == userId && r.MovieId == movieId && r.DeletionDate == null);
         }
 
+        // Retrieves all ratings for a specific movie, including user details
         //public async Task<List<UserRating>> GetMovieRatingsAsync(int movieId)
         //{
-            //return await _context.UserRatings
-                //.Include(r => r.User)
-                //.Where(r => r.MovieId == movieId)
-                //.OrderByDescending(r => r.CreatedAt)
-                //.ToListAsync();
+        //return await _context.UserRatings
+        //.Include(r => r.User)
+        //.Where(r => r.MovieId == movieId)
+        //.OrderByDescending(r => r.CreatedAt)
+        //.ToListAsync();
         //}
 
+        // Calculates the average rating for a specific movie
         //public async Task<double> GetMovieAverageRatingAsync(int movieId)
         //{
-            //var ratings = await _context.UserRatings
-                //.Where(r => r.MovieId == movieId)
-                //.Select(r => r.Rating)
-                //.ToListAsync();
+        //var ratings = await _context.UserRatings
+        //.Where(r => r.MovieId == movieId)
+        //.Select(r => r.Rating)
+        //.ToListAsync();
 
-            //return ratings.Any() ? ratings.Average() : 0;
+        //return ratings.Any() ? ratings.Average() : 0;
         //}
 
+        // Counts the total number of ratings for a specific movie
         //public async Task<int> GetMovieRatingCountAsync(int movieId)
         //{
-            //return await _context.UserRatings
-                //.CountAsync(r => r.MovieId == movieId);
+        //return await _context.UserRatings
+        //.CountAsync(r => r.MovieId == movieId);
         //}
 
+        // Toggles the favorite status silently for a movie without returning a message
         public async Task ToggleFavoriteSilentlyAsync(int userId, int movieId, bool isfavorite)
         {
             try
@@ -123,13 +129,13 @@ namespace CineHub.Services
                     return;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
         }
 
-
+        // Toggles a movie as favorite or not, returning a success message
         public async Task<(bool Success, string Message)> ToggleFavoriteAsync(int userId, int movieId)
         {
             try
@@ -156,18 +162,20 @@ namespace CineHub.Services
                     return (true, "Filme adicionado aos favoritos!");
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return (false, $"Erro ao atualizar favoritos: {ex.Message}");
+                throw;
             }
         }
 
+        // Checks if a movie is marked as favorite by a user
         public async Task<bool> IsMovieFavoriteAsync(int userId, int movieId)
         {
             return await _context.UserFavorites
                 .AnyAsync(f => f.UserId == userId && f.MovieId == movieId && f.DeletionDate == null);
         }
 
+        // Retrieves a list of all favorite movies for a user
         public async Task<List<UserFavorite>> GetUserFavoritesAsync(int userId)
         {
             return await _context.UserFavorites
@@ -177,6 +185,7 @@ namespace CineHub.Services
                 .ToListAsync();
         }
 
+        // Retrieves recent user ratings limited by the specified count
         public async Task<List<UserRating>> GetUserRatingsAsync(int userId, int take = 10)
         {
             return await _context.UserRatings
@@ -187,10 +196,11 @@ namespace CineHub.Services
                 .ToListAsync();
         }
 
+        // Calculates the average rating and total number of ratings given by a user
         public async Task<(double AverageRating, int TotalRatings)> GetUserRatingStatsAsync(int userId)
         {
             var ratings = await _context.UserRatings
-                .Where(r => r.UserId == userId)
+                .Where(r => r.UserId == userId && r.DeletionDate == null)
                 .Select(r => r.Rating)
                 .ToListAsync();
 
@@ -200,6 +210,7 @@ namespace CineHub.Services
             );
         }
 
+        // Deletes a user's rating for a movie and optionally removes it from favorites
         public async Task<(bool Success, string Message)> DeleteRating(int userId, int movieId)
         {
             try
@@ -214,24 +225,24 @@ namespace CineHub.Services
                 {
                     existingRating.DeletionDate = DateTime.UtcNow;
                     await _context.SaveChangesAsync();
-                    return (true, "Avaliação excluida");
+                    return (true, "Avaliação deletada com sucesso!");
                 }
-                if(existingFavorite != null && existingRating != null)
+                if (existingFavorite != null && existingRating != null)
                 {
                     existingFavorite.DeletionDate = DateTime.UtcNow;
                     existingRating.DeletionDate = DateTime.UtcNow;
                     await _context.SaveChangesAsync();
-                    return (true, "Avaliação excluida e removido dos favoritos");
+                    return (true, "Avaliação deletada e removido dos favoritos");
                 }
                 else
                 {
-                    return (false, $"Erro ao excluir Avaliação");
+                    return (false, $"Erro ao deletar Avaliação");
                 }
 
             }
             catch (Exception ex)
             {
-                return (false, $"Erro ao excluir avaliação: {ex.Message}");
+                return (false, $"Erro ao deletar avaliação: {ex.Message}");
             }
         }
     }

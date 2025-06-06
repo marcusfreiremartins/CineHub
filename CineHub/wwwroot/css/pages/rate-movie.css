@@ -1,11 +1,11 @@
-﻿/* Container principal do sistema de rating */
+﻿/* Rating system container */
 .rating-container {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
 }
 
-/* Badge de rating individual */
+/* Interactive rating badge */
 .rating-badge {
     cursor: pointer;
     transition: transform var(--transition-standard);
@@ -15,12 +15,12 @@
         transform: scale(1.1);
     }
 
-    /* Input oculto */
+    /* Hidden radio input */
     .rating-badge input {
         display: none;
     }
 
-    /* Estilos do badge */
+    /* Badge visual style */
     .rating-badge .badge {
         transition: all var(--transition-standard);
         user-select: none;
@@ -29,21 +29,20 @@
         border: 2px solid transparent;
     }
 
-        /* Hover em badge individual */
         .rating-badge .badge:hover {
             background-color: var(--primary-blue) !important;
             border-color: var(--primary-blue);
             box-shadow: var(--shadow-blue);
         }
 
-    /* Badge selecionado */
+    /* Selected badge state */
     .rating-badge input:checked + .badge {
         background-color: var(--primary-blue) !important;
         border-color: var(--primary-blue);
         box-shadow: var(--shadow-blue-strong);
     }
 
-/* Efeito de preenchimento progressivo ao hover */
+/* Hover highlight effect */
 .rating-container:hover .rating-badge .badge {
     background-color: var(--secondary-gray) !important;
 }
@@ -52,7 +51,7 @@
     background-color: var(--primary-blue) !important;
 }
 
-/* Responsividade para dispositivos móveis */
+/* Responsive adjustments */
 @media (max-width: 576px) {
     .rating-container {
         gap: 5px;

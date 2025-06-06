@@ -1,3 +1,4 @@
+// Configuration object for app settings, API endpoints, and selectors
 const APP_CONFIG = {
     TOAST_DURATION: 5000,
     ANIMATION_DURATION: 300,

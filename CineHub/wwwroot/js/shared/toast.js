@@ -15,7 +15,7 @@ const toastIcons = {
 
 function showToast(message, type = 'info', duration = APP_CONFIG.TOAST_DURATION) {
 
-    // Garantir que o container existe
+    // Ensure the container exists
     let container = document.getElementById('toast-container');
     if (!container) {
         console.warn('Container do toast não encontrado, criando...');
@@ -36,7 +36,7 @@ function showToast(message, type = 'info', duration = APP_CONFIG.TOAST_DURATION)
         <div class="toast-progress"></div>
     `;
 
-    // Event listener para o botão de fechar
+    // Event listener for the close button
     const closeButton = toast.querySelector('.toast-close');
     closeButton.addEventListener('click', function () {
         hideToast(this);
@@ -44,12 +44,12 @@ function showToast(message, type = 'info', duration = APP_CONFIG.TOAST_DURATION)
 
     container.appendChild(toast);
 
-    // Mostrar o toast
+    // Show the toast
     requestAnimationFrame(() => {
         toast.classList.add('show');
     });
 
-    // Auto-hide após o tempo especificado
+    // Auto-hide after the specified time
     setTimeout(() => {
         if (toast.parentNode) {
             hideToast(closeButton);

@@ -100,7 +100,7 @@
                                         Ver Detalhes do Filme
                                     </a>
                                     <!--Comentado, provavelmente não vou conseguir entregar essa função
-                                    <a asp-controller="Rating" asp-action="MovieRatings" asp-route-movieId="@rating.MovieId"
+                                    <a asp-controller="Rating" asp-action="MovieRatings" asp-route-movieId="/@rating.MovieId"
                                        class="btn btn-outline-info btn-sm">
                                         Ver Todas as Avaliações
                                     </a>
@@ -114,8 +114,8 @@
         }
     </div>
 
-    <div class="text-center mt-4">
-        <a asp-controller="Movies" asp-action="Index" class="btn btn-outline-primary">
+    <div class="text-center mt-4" id="evaluateMoreSection">
+        <a asp-controller="Movies" asp-action="Index" class="btn btn-outline-primary" id="evaluateMoreBtn">
             🎬 Avaliar Mais Filmes
         </a>
     </div>
@@ -132,7 +132,7 @@ else
     </div>
 }
 
-<!-- Modal de Confirmação de Exclusão -->
+<!-- Deletion Confirmation Modal -->
 <div class="modal fade" id="deleteRatingModal" tabindex="-1" aria-labelledby="deleteRatingModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">

@@ -1,4 +1,4 @@
-// Função para requisições POST reutilizável
+// Reusable function for POST requests
 async function makePostRequest(url, data) {
     try {
         const response = await fetch(url, {
@@ -21,7 +21,7 @@ async function makePostRequest(url, data) {
     }
 }
 
-// Função para animar e remover elementos
+// Function to animate and remove elements
 function animateAndRemove(element, callback = null) {
     if (!element) return;
 
@@ -36,7 +36,7 @@ function animateAndRemove(element, callback = null) {
     }, APP_CONFIG.ANIMATION_DURATION);
 }
 
-// Função para mostrar/esconder modals Bootstrap
+// Function to show/hide Bootstrap modals
 function showModal(modalId) {
     const modalElement = document.getElementById(modalId);
     if (!modalElement) {
@@ -49,6 +49,7 @@ function showModal(modalId) {
     return modal;
 }
 
+// Function to hide a Bootstrap modal by its ID
 function hideModal(modalId) {
     const modalElement = document.getElementById(modalId);
     if (!modalElement) return;

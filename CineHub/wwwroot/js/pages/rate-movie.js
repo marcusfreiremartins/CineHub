@@ -4,10 +4,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!container || badges.length === 0) return;
 
-    // Pega o valor do rating atual do atributo data
+    // Get the current rating value from the data attribute
     const currentRating = parseInt(container.getAttribute('data-current-rating')) || 0;
 
-    // Função para destacar os badges baseado na nota
+    // Function to highlight badges based on the given rating
     function highlightBadges(rating) {
         badges.forEach((badgeLabel, index) => {
             const badge = badgeLabel.querySelector('.badge');
@@ -23,17 +23,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Destacar a nota atual ao carregar a página
+    // Highlight the current rating on page load
     highlightBadges(currentRating);
 
-    // Adicionar event listeners para cada badge
+    // Add event listeners to each badge
     badges.forEach((badgeLabel, index) => {
-        // Efeito hover - destaca badges até a posição do mouse
+        // Hover effect - highlight badges up to the hovered badge
         badgeLabel.addEventListener('mouseenter', () => {
             highlightBadges(index + 1);
         });
 
-        // Click - seleciona a nota
+        // Click - select the rating
         badgeLabel.addEventListener('click', () => {
             const input = badgeLabel.querySelector('input');
             if (input) {
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Restaurar estado ao sair do container
+    // Restore the highlighted state when the mouse leaves the container
     container.addEventListener('mouseleave', () => {
         const checkedInput = document.querySelector('input[name="Rating"]:checked');
         const checkedValue = checkedInput ? parseInt(checkedInput.value) : currentRating;
