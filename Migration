@@ -21,7 +21,6 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public."Users" OWNER to postgres;
 
-
 -- Tabela Movies
 CREATE TABLE IF NOT EXISTS public."Movies"
 (
@@ -41,7 +40,6 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public."Movies" OWNER to postgres;
 
-
 -- Tabela UserFavorites
 CREATE TABLE IF NOT EXISTS public."UserFavorites"
 (
@@ -60,7 +58,6 @@ TABLESPACE pg_default;
 
 ALTER TABLE IF EXISTS public."UserFavorites" OWNER to postgres;
 
-
 -- Tabela UserRatings
 CREATE TABLE IF NOT EXISTS public."UserRatings"
 (
@@ -72,6 +69,7 @@ CREATE TABLE IF NOT EXISTS public."UserRatings"
     "CreatedAt" timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "UpdatedAt" timestamp without time zone,
     "DeletionDate" timestamp without time zone,
+    "LastActivityDate" timestamp without time zone,
     CONSTRAINT "UserRatings_pkey" PRIMARY KEY ("Id"),
     CONSTRAINT "FK_UserRatings_Movies" FOREIGN KEY ("MovieId")
         REFERENCES public."Movies" ("Id") ON DELETE CASCADE,
