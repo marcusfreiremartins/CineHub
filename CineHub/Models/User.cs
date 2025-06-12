@@ -40,6 +40,7 @@ namespace CineHub.Models
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? DeletionDate { get; set; }
+        public DateTime LastActivityDate { get; set; }
 
         // Navigation properties
         public virtual User User { get; set; } = null!;

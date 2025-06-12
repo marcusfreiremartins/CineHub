@@ -65,6 +65,10 @@ namespace CineHub.Data
                 .HasColumnType("timestamp without time zone");
 
             modelBuilder.Entity<UserRating>()
+                .Property(e => e.LastActivityDate)
+                .HasColumnType("timestamp without time zone");
+
+            modelBuilder.Entity<UserRating>()
                 .HasOne(ur => ur.User)
                 .WithMany(u => u.Ratings)
                 .HasForeignKey(ur => ur.UserId)

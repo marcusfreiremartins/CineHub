@@ -31,6 +31,7 @@ namespace CineHub.Services
                     existingRating.Rating = rating;
                     existingRating.Comment = comment;
                     existingRating.UpdatedAt = DateTime.UtcNow;
+                    existingRating.LastActivityDate = DateTime.UtcNow;
                     existingRating.DeletionDate = null;
                 }
                 else
@@ -41,7 +42,9 @@ namespace CineHub.Services
                         MovieId = movieId,
                         Rating = rating,
                         Comment = comment,
-                        CreatedAt = DateTime.UtcNow
+                        CreatedAt = DateTime.UtcNow,
+                        LastActivityDate = DateTime.UtcNow
+
                     };
                     _context.UserRatings.Add(newRating);
                 }
@@ -62,34 +65,6 @@ namespace CineHub.Services
                 .Include(r => r.Movie)
                 .FirstOrDefaultAsync(r => r.UserId == userId && r.MovieId == movieId && r.DeletionDate == null);
         }
-
-        // Retrieves all ratings for a specific movie, including user details
-        //public async Task<List<UserRating>> GetMovieRatingsAsync(int movieId)
-        //{
-        //return await _context.UserRatings
-        //.Include(r => r.User)
-        //.Where(r => r.MovieId == movieId)
-        //.OrderByDescending(r => r.CreatedAt)
-        //.ToListAsync();
-        //}
-
-        // Calculates the average rating for a specific movie
-        //public async Task<double> GetMovieAverageRatingAsync(int movieId)
-        //{
-        //var ratings = await _context.UserRatings
-        //.Where(r => r.MovieId == movieId)
-        //.Select(r => r.Rating)
-        //.ToListAsync();
-
-        //return ratings.Any() ? ratings.Average() : 0;
-        //}
-
-        // Counts the total number of ratings for a specific movie
-        //public async Task<int> GetMovieRatingCountAsync(int movieId)
-        //{
-        //return await _context.UserRatings
-        //.CountAsync(r => r.MovieId == movieId);
-        //}
 
         // Toggles the favorite status silently for a movie without returning a message
         public async Task ToggleFavoriteSilentlyAsync(int userId, int movieId, bool isfavorite)
@@ -191,7 +166,7 @@ namespace CineHub.Services
             return await _context.UserRatings
                 .Include(r => r.Movie)
                 .Where(r => r.UserId == userId && r.DeletionDate == null)
-                .OrderByDescending(r => r.CreatedAt)
+                .OrderByDescending(r => r.LastActivityDate)
                 .Take(take)
                 .ToListAsync();
         }
@@ -244,6 +219,41 @@ namespace CineHub.Services
             {
                 return (false, $"Erro ao deletar avaliação: {ex.Message}");
             }
+        }
+
+        // Retrieves paginated comments for a specific movie, prioritizing those with comments
+        public async Task<(List<UserRating> Comments, int TotalCount)> GetMovieCommentsAsync(int movieId, int page = 1, int pageSize = 5)
+        {
+            var query = _context.UserRatings
+                .Include(r => r.User)
+                .Where(r => r.MovieId == movieId && r.DeletionDate == null);
+
+            var orderedQuery = query
+                .OrderByDescending(r => !string.IsNullOrEmpty(r.Comment))
+                .ThenByDescending(r => r.LastActivityDate);
+
+            var totalCount = await orderedQuery.CountAsync();
+
+            var comments = await orderedQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (comments, totalCount);
+        }
+
+        // Gets movie rating statistics (average rating and total count)
+        public async Task<(double AverageRating, int TotalRatings)> GetMovieRatingStatsAsync(int movieId)
+        {
+            var ratings = await _context.UserRatings
+                .Where(r => r.MovieId == movieId && r.DeletionDate == null)
+                .Select(r => r.Rating)
+                .ToListAsync();
+
+            return (
+                ratings.Any() ? ratings.Average() : 0,
+                ratings.Count
+            );
         }
     }
 }

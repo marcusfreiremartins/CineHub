@@ -9,9 +9,9 @@
         public string MovieOverview { get; set; } = string.Empty;
         public int UserRating { get; set; }
         public string? Comment { get; set; }
-        public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-        public string FormattedCreatedDate => CreatedAt.ToString("dd/MM/yyyy");
+        public DateTime LastActivityDate { get; set; }
+        public string FormattedCreatedDate => LastActivityDate.ToString("dd/MM/yyyy");
         public string FormattedUpdatedDate => UpdatedAt?.ToString("dd/MM/yyyy") ?? "";
         public bool WasUpdated => UpdatedAt.HasValue;
     }

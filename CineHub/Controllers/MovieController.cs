@@ -10,11 +10,16 @@ namespace CineHub.Controllers
     public class MoviesController : BaseController
     {
         private readonly MovieService _movieService;
+        private readonly RatingService _ratingService;
         private readonly ImageSettings _imageSettings;
 
-        public MoviesController(MovieService movieService, IOptions<ImageSettings> imageSettings)
+        public MoviesController(
+            MovieService movieService,
+            RatingService ratingService,
+            IOptions<ImageSettings> imageSettings)
         {
             _movieService = movieService;
+            _ratingService = ratingService;
             _imageSettings = imageSettings.Value;
         }
 
@@ -35,7 +40,7 @@ namespace CineHub.Controllers
 
                     if (!movies.Any())
                     {
-                        ShowInfo($"Nenhum filme encontrado para '{search}'. Experimente outros termos! 🎭");
+                        TempData["Info"] = $"Nenhum filme encontrado para '{search}'. Experimente outros termos! 🎭";
                     }
                 }
 
@@ -51,34 +56,67 @@ namespace CineHub.Controllers
             }
             catch (Exception)
             {
-                ShowError("Erro ao carregar filmes. Tente novamente mais tarde.");
-                return View(new MovieIndexViewModel { Movies = new List<Movie>(), ImageBaseUrl = _imageSettings.BaseUrl });
+                TempData["Error"] = "Erro ao carregar filmes. Tente novamente mais tarde.";
+                return View(new MovieIndexViewModel
+                {
+                    Movies = new List<Movie>(),
+                    ImageBaseUrl = _imageSettings.BaseUrl
+                });
             }
         }
 
         // Displays detailed information about a specific movie
-        public async Task<IActionResult> Details(int id)
+        [HttpGet]
+        public async Task<IActionResult> Details(int id, int page = 1)
         {
+            const int pageSize = 5;
+
             try
             {
                 var movie = await _movieService.GetMovieByIdAsync(id);
                 if (movie == null)
                 {
-                    ShowError("Filme não encontrado!");
+                    TempData["Error"] = "Filme não encontrado!";
                     return RedirectToAction("Index");
                 }
+
+                var (comments, totalComments) = await _ratingService.GetMovieCommentsAsync(id, page, pageSize);
+                var (averageRating, totalRatings) = await _ratingService.GetMovieRatingStatsAsync(id);
+
+                var commentViewModels = comments.Select(c => new MovieCommentItemViewModel
+                {
+                    Id = c.Id,
+                    UserName = c.User.Name,
+                    Rating = c.Rating,
+                    Comment = c.Comment ?? "",
+                    CreatedAt = c.CreatedAt,
+                    UpdatedAt = c.UpdatedAt
+                }).ToList();
+
+                var commentsViewModel = new MovieCommentsViewModel
+                {
+                    Comments = commentViewModels,
+                    CurrentPage = page,
+                    TotalPages = (int)Math.Ceiling((double)totalComments / pageSize),
+                    TotalComments = totalComments,
+                    MovieId = id,
+                    MovieTitle = movie.Title
+                };
 
                 var viewModel = new MovieDetailsViewModel
                 {
                     Movie = movie,
-                    ImageBaseUrl = _imageSettings.BaseUrl
+                    ImageBaseUrl = _imageSettings.BaseUrl,
+                    Comments = commentsViewModel,
+                    AverageUserRating = averageRating,
+                    TotalUserRatings = totalRatings
                 };
 
                 return View(viewModel);
             }
             catch (Exception)
             {
-                ShowError("Erro ao carregar detalhes do filme.");
+                TempData["Error"] = "Erro ao carregar detalhes do filme. Tente novamente mais tarde.";
                 return RedirectToAction("Index");
             }
         }

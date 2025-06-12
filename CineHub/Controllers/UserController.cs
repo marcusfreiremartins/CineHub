@@ -1,5 +1,4 @@
 ﻿using CineHub.Configuration;
-using CineHub.Models.ViewModels;
 using CineHub.Models.ViewModels.User;
 using CineHub.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -129,7 +128,7 @@ namespace CineHub.Controllers
                 MovieOverview = r.Movie.Overview,
                 UserRating = r.Rating,
                 Comment = r.Comment,
-                CreatedAt = r.CreatedAt,
+                LastActivityDate = r.LastActivityDate,
                 UpdatedAt = r.UpdatedAt
             }).ToList();
 
