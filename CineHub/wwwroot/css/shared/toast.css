@@ -28,7 +28,6 @@
     transition: all var(--transition-slow);
 }
 
-    /* Entry and exit animations */
     .toast.show {
         transform: translateX(0);
         opacity: 1;

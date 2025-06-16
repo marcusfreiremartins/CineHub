@@ -8,39 +8,54 @@
         @if (!string.IsNullOrEmpty(Model.Movie.PosterPath))
         {
             <img src="@Model.ImageBaseUrl@Model.Movie.PosterPath"
-                 class="img-fluid rounded shadow" alt="@Model.Movie.Title">
+                 class="img-fluid rounded shadow"
+                 alt="@Model.Movie.Title"
+                 loading="lazy">
         }
         else
         {
             <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded"
-                 style="height: 600px;">
-                <span class="fs-1">🎬</span>
+                 style="height: 600px;"
+                 role="img"
+                 aria-label="Poster não disponível para @Model.Movie.Title">
+                <span class="fs-1" aria-hidden="true">🎬</span>
             </div>
         }
     </div>
 
     <div class="col-md-8">
-        <h1 class="display-5 fw-bold">@Model.Movie.Title</h1>
+        <h1 class="display-5 fw-bold">@Html.Raw(Html.Encode(Model.Movie.Title))</h1>
 
         <div class="mb-3">
             @if (Model.Movie.ReleaseDate.HasValue)
             {
-                <span class="badge bg-secondary me-2">
-                    📅 @Model.Movie.ReleaseDate.Value.ToString("dd/MM/yyyy")
+                <span class="badge bg-secondary me-2"
+                      title="Data de lançamento">
+                    <span aria-hidden="true">📅</span> @Model.Movie.ReleaseDate.Value.ToString("dd/MM/yyyy")
                 </span>
             }
 
             @if (Model.Movie.VoteAverage > 0)
             {
-                <span class="badge bg-warning text-dark me-2">
-                    ⭐ @Model.Movie.VoteAverage.ToString("F1")/10
+                <span class="badge bg-warning text-dark me-2"
+                      title="Avaliação média no TMDB">
+                    <span aria-hidden="true">⭐</span> @Model.Movie.VoteAverage.ToString("F1")/10 (TMDB)
+                </span>
+            }
+
+            @if (Model.TotalUserRatings > 0)
+            {
+                <span class="badge bg-success text-white me-2"
+                      title="Avaliação média dos usuários">
+                    <span aria-hidden="true">👥</span> @Model.FormattedAverageRating/10 (@Model.TotalUserRatings avaliações dos usuários)
                 </span>
             }
 
             @if (Model.Movie.VoteCount > 0)
             {
-                <span class="badge bg-info">
-                    👥 @Model.Movie.VoteCount.ToString("N0") votos
+                <span class="badge bg-info"
+                      title="Total de votos no TMDB">
+                    <span aria-hidden="true">🌐</span> @Model.Movie.VoteCount.ToString("N0") votos TMDB
                 </span>
             }
         </div>
@@ -49,7 +64,7 @@
         {
             <div class="mb-4">
                 <h4>📝 Sinopse</h4>
-                <p class="lead">@Model.Movie.Overview</p>
+                <p class="lead">@Html.Raw(Html.Encode(Model.Movie.Overview))</p>
             </div>
         }
 
@@ -66,13 +81,155 @@
         </div>
 
         <div class="d-grid gap-2 d-md-flex">
-            <a asp-controller="Movies" asp-action="Index" class="btn btn-secondary">
+            <a asp-controller="Movies" asp-action="Index"
+               class="btn btn-secondary"
+               aria-label="Voltar para lista de filmes">
                 ← Voltar para Filmes
             </a>
 
-            <a asp-controller="Rating" asp-action="RateMovie" asp-route-movieId="@Model.Movie.Id" class="btn btn-success">
+            <a asp-controller="Rating" asp-action="RateMovie" asp-route-movieId="@Model.Movie.Id"
+               class="btn btn-success"
+               aria-label="Avaliar o filme @Model.Movie.Title">
                 ⭐ Avaliar Filme
             </a>
         </div>
     </div>
 </div>
+
+<!-- Users Review -->
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                <h4 class="mb-0 d-flex align-items-center gap-2">
+                    <span aria-hidden="true">💬</span>
+                    <span>Avaliações dos Usuários</span>
+                </h4>
+                @if (Model.Comments.TotalComments > 0)
+                {
+                    <span class="badge bg-primary mt-2 mt-md-0"
+                          title="Total de avaliações">
+                        @Model.Comments.TotalComments.ToString("N0") avaliações
+                    </span>
+                }
+            </div>
+            <div class="card-body">
+                @if (Model.Comments.Comments.Any())
+                {
+                    <div id="comments-container" role="region" aria-label="Lista de comentários">
+                        @foreach (var comment in Model.Comments.Comments)
+                        {
+                            <div class="comment-item border-bottom pb-3 mb-3"
+                                 data-comment-id="@comment.Id"
+                                 data-edited="@comment.WasUpdated.ToString().ToLower()">
+                                <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap">
+                                    <div class="mb-2 mb-md-0">
+                                        <h6 class="mb-1 fw-bold">@Html.Raw(Html.Encode(comment.UserName))</h6>
+                                        <div class="rating-numeric mb-1"
+                                             title="Avaliação: @comment.Rating/10"
+                                             role="img"
+                                             aria-label="Avaliação: @comment.Rating de 10">
+                                            <span class="badge bg-warning text-dark">
+                                                <strong>@comment.RatingDisplay</strong>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted">
+                                            @if (comment.WasUpdated)
+                                            {
+                                                <span title="Criado em @comment.FormattedCreatedDate">
+                                                    <span class="d-none d-sm-inline">Editado:</span>
+                                                    <span class="d-sm-none">Ed:</span>
+                                                    @comment.FormattedUpdatedDate
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span>@comment.FormattedCreatedDate</span>
+                                            }
+                                        </small>
+                                    </div>
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(comment.Comment))
+                                {
+                                    <div class="comment-text">
+                                        @Html.Raw(Html.Encode(comment.Comment).Replace("\n", "<br>"))
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="mb-0 text-muted fst-italic">Usuário não deixou comentário</p>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    @if (Model.Comments.TotalPages > 1)
+                    {
+                        <nav aria-label="Paginação de comentários" class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                @if (Model.Comments.HasPreviousPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="#"
+                                           onclick="loadComments(@(Model.Comments.CurrentPage - 1)); return false;"
+                                           aria-label="Ir para página anterior">
+                                            <span aria-hidden="true">←</span> Anterior
+                                        </a>
+                                    </li>
+                                }
+
+                                @for (int i = Math.Max(1, Model.Comments.CurrentPage - 2); i <= Math.Min(Model.Comments.TotalPages, Model.Comments.CurrentPage + 2); i++)
+                                {
+                                    <li class="page-item @(i == Model.Comments.CurrentPage ? "active" : "")">
+                                        <a class="page-link"
+                                           href="#"
+                                           onclick="loadComments(@i); return false;"
+                                           aria-label="@(i == Model.Comments.CurrentPage ? "Página atual, " : "Ir para ")página @i"
+                                        @(i == Model.Comments.CurrentPage ? "aria-current=\"page\"" : "")>
+                                            @i
+                                        </a>
+                                    </li>
+                                }
+
+                                @if (Model.Comments.HasNextPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link"
+                                           href="#"
+                                           onclick="loadComments(@(Model.Comments.CurrentPage + 1)); return false;"
+                                           aria-label="Ir para próxima página">
+                                            Próxima <span aria-hidden="true">→</span>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-4 empty-state" role="region" aria-label="Nenhuma avaliação disponível">
+                        <div class="mb-3">
+                            <span class="fs-1 empty-icon" aria-hidden="true">📝</span>
+                        </div>
+                        <h5 class="text-muted">Nenhuma avaliação ainda</h5>
+                        <p class="text-muted">Seja o primeiro a avaliar este filme!</p>
+                        <a asp-controller="Rating" asp-action="RateMovie" asp-route-movieId="@Model.Movie.Id"
+                           class="btn btn-primary"
+                           aria-label="Avaliar o filme @Model.Movie.Title agora">
+                            ⭐ Avaliar Agora
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/movie-details.js" asp-append-version="true"></script>
+}

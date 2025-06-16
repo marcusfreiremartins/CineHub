@@ -1,0 +1,454 @@
+﻿/* Styles for individual comment blocks */
+.comment-item {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px !important;
+    background-color: #f8f9fa;
+    position: relative;
+}
+
+    /* Hover effect on comment block */
+    .comment-item:hover {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Remove margin and border from the last comment */
+    .comment-item:last-child {
+        border-bottom: none !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Visual indicator for edited comments */
+    .comment-item[data-edited="true"]::before {
+        content: "✏️";
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        font-size: 0.8em;
+        opacity: 0.6;
+    }
+
+.rating-numeric {
+    display: inline-flex;
+    align-items: center;
+    font-size: 1em;
+}
+
+    .rating-numeric .badge {
+        font-size: 0.9em;
+        padding: 0.4em 0.7em;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease-in-out;
+    }
+
+        .rating-numeric .badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        }
+
+
+        .rating-numeric .badge.rating-average {
+            background-color: #0d6efd !important;
+            color: #212529 !important;
+        }
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .rating-numeric {
+        font-size: 0.9em;
+    }
+
+        .rating-numeric .badge {
+            font-size: 0.8em;
+            padding: 0.3em 0.6em;
+        }
+}
+
+/* Comment text box styles */
+.comment-text {
+    font-size: 0.95em;
+    line-height: 1.6;
+    color: #495057;
+    background-color: white;
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 4px solid #007bff;
+    margin-top: 8px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+}
+
+    /* Better spacing for long paragraphs inside comments */
+    .comment-text p {
+        margin-bottom: 0.5rem;
+    }
+
+        .comment-text p:last-child {
+            margin-bottom: 0;
+        }
+
+/* Header of comment cards */
+.card-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+    .card-header h4 {
+        color: white;
+        margin: 0;
+    }
+
+/* Card container styles */
+.card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Smooth transitions for comment container */
+#comments-container {
+    min-height: 200px;
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+/* Pagination component layout */
+.pagination {
+    margin-bottom: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+    /* Pagination button styles */
+    .pagination .page-link {
+        border-radius: 6px;
+        margin: 2px;
+        border: 1px solid #dee2e6;
+        color: #007bff;
+        transition: all 0.3s ease;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        /* Hover effect for pagination buttons */
+        .pagination .page-link:hover:not(.disabled) {
+            background-color: #007bff;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+        }
+
+        .pagination .page-link:focus {
+            outline: 2px solid #007bff;
+            outline-offset: 2px;
+        }
+
+        /* Disabled pagination state */
+        .pagination .page-link.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+    /* Active pagination page */
+    .pagination .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+        box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+        color: white;
+    }
+
+/* Spinner size for loading indicators */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Error message styling */
+.error-state {
+    padding: 2rem;
+    text-align: center;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+    .error-state .error-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .error-state .error-title {
+        color: #dc3545;
+        margin-bottom: 0.5rem;
+    }
+
+    .error-state .error-message {
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+    }
+
+/* Loading state layout */
+.loading-state {
+    padding: 2rem;
+    text-align: center;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+    .loading-state .spinner-border {
+        margin-bottom: 1rem;
+    }
+
+/* Responsive adjustments for tablets and small devices */
+@media (max-width: 768px) {
+    .comment-item {
+        padding: 12px;
+        margin-bottom: 12px !important;
+    }
+
+    .comment-text {
+        padding: 10px;
+        font-size: 0.9em;
+    }
+
+    .rating-stars {
+        font-size: 1em;
+    }
+
+    .pagination .page-link {
+        padding: 0.375rem 0.5rem;
+        font-size: 0.875rem;
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .card-header h4 {
+        font-size: 1.1rem;
+    }
+
+    /* Adjust button layout on mobile */
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+        .d-flex.justify-content-between .text-end {
+            text-align: left !important;
+        }
+
+    #comments-container {
+        min-height: 150px;
+    }
+}
+
+/* Responsive adjustments for smaller phones */
+@media (max-width: 576px) {
+    .pagination {
+        font-size: 0.8rem;
+    }
+
+        .pagination .page-link {
+            min-width: 36px;
+            min-height: 36px;
+            padding: 0.25rem 0.375rem;
+        }
+
+    .comment-item {
+        padding: 10px;
+    }
+
+    .comment-text {
+        padding: 8px;
+        font-size: 0.85em;
+    }
+
+    #comments-container {
+        min-height: 120px;
+    }
+}
+
+/* Fade in animation for new content */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Slide in animation from the left */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Animation for comment container */
+@keyframes containerFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes containerFadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Apply slide animation to pagination */
+.pagination {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Spinner adjustment for centered layout */
+.text-center .spinner-border {
+    margin-bottom: 1rem;
+}
+
+/* Improved text color for error messages */
+.text-danger {
+    color: #dc3545 !important;
+}
+
+/* Badge used to show comment count */
+.badge {
+    font-size: 0.85em;
+    padding: 0.5em 0.75em;
+    border-radius: 0.375rem;
+}
+
+/* Styling for when there are no comments */
+.py-4 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+}
+
+.empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+    color: #6c757d;
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+    .empty-state .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state h5 {
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+
+    .empty-state p {
+        margin-bottom: 1.5rem;
+    }
+
+/* Screen reader only text for accessibility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Improved focus styles for accessibility */
+button:focus,
+.btn:focus,
+.page-link:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* Visual indicator styles */
+.loading-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+}
+
+.error-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #dc3545;
+}
+
+/* Smooth transitions for interactive elements */
+button,
+.btn,
+.page-link,
+.comment-item {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Prevent layout issues due to content overflow */
+.comment-text,
+.card-body,
+.pagination {
+    min-width: 0;
+    word-wrap: break-word;
+}
+
+/* Better contrast for muted text */
+.text-muted {
+    color: #6c757d !important;
+}
+
+.comment-item .text-muted {
+    color: #8e9297 !important;
+}
+
+/* Smooth transitions for comment container */
+.comments-container-transition {
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
