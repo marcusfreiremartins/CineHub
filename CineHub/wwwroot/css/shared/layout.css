@@ -31,3 +31,25 @@ html, body {
         padding-top: var(--navbar-height-mobile);
     }
 }
+
+/* Navbar scroll animation */
+.navbar {
+    transform: translateY(0);
+    transition: transform 0.3s ease-in-out;
+}
+
+    .navbar.navbar-hidden {
+        transform: translateY(-100%);
+    }
+
+
+    /* Ensure navbar has higher z-index when visible */
+    .navbar.show {
+        z-index: 1050;
+        pointer-events: auto;
+    }
+
+    /* Keep navbar visible when focused for accessibility */
+    .navbar:focus-within {
+        transform: translateY(0);
+    }

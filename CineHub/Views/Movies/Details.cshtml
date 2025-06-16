@@ -151,17 +151,9 @@
                                         </small>
                                     </div>
                                 </div>
-
-                                @if (!string.IsNullOrEmpty(comment.Comment))
-                                {
-                                    <div class="comment-text">
-                                        @Html.Raw(Html.Encode(comment.Comment).Replace("\n", "<br>"))
-                                    </div>
-                                }
-                                else
-                                {
-                                    <p class="mb-0 text-muted fst-italic">Usuário não deixou comentário</p>
-                                }
+                                <div class="comment-text">
+                                    @Html.Raw(Html.Encode(comment.Comment).Replace("\n", "<br>"))
+                                </div>
                             </div>
                         }
                     </div>

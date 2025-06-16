@@ -18,70 +18,78 @@ namespace CineHub.Controllers
             _imageSettings = imageSettings.Value;
         }
 
-        // Displays the home page with popular movies
+        // Displays the home page with popular movies, now playing, and top rated
         public async Task<IActionResult> Index()
         {
+            var viewModel = new MovieIndexViewModel
+            {
+                ImageBaseUrl = _imageSettings.BaseUrl,
+                PopularMovies = new List<Movie>(),
+                TopRatedMovies = new List<Movie>()
+            };
+
             try
             {
-                var movies = await _movieService.GetPopularMoviesAsync();
-                var viewModel = new MovieIndexViewModel
-                {
-                    Movies = movies,
-                    ImageBaseUrl = _imageSettings.BaseUrl
-                };
+                var popularMovies = await _movieService.GetPopularMoviesAsync();
+                viewModel.PopularMovies = popularMovies.Take(12).ToList();
+
+                var topRatedMovies = await _movieService.GetTopRatedMoviesAsync();
+                viewModel.TopRatedMovies = topRatedMovies.Take(12).ToList();
 
                 if (IsUserLoggedIn() && TempData["IsNewUser"] != null)
                 {
                     var userName = HttpContext.Session.GetString("UserName");
                     ShowSuccess($"Bem-vindo ao CineHub, {userName}! Explore nossos filmes populares! 🎬");
+                    TempData.Remove("IsNewUser");
                 }
-
-                return View(viewModel);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                ShowError("Erro ao carregar filmes populares. Tente novamente mais tarde.");
-                return View(new MovieIndexViewModel { Movies = new List<Movie>(), ImageBaseUrl = _imageSettings.BaseUrl });
+                Console.WriteLine($"Erro ao carregar filmes: {ex.Message}");
+                ShowError("Erro ao carregar filmes. Tente novamente mais tarde.");
             }
+
+            return View(viewModel);
         }
 
         // Handles movie search and displays results
         [HttpGet]
-        public async Task<IActionResult> Search(string q = "", int page = 1)
+        public async Task<IActionResult> Search(string q)
         {
-            try
+            var viewModel = new MovieIndexViewModel
             {
-                List<Movie> movies;
+                ImageBaseUrl = _imageSettings.BaseUrl,
+                Search = q ?? string.Empty,
+                Movies = new List<Movie>(),
+                PopularMovies = new List<Movie>(),
+                TopRatedMovies = new List<Movie>()
+            };
 
-                if (string.IsNullOrWhiteSpace(q))
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                try
                 {
-                    movies = await _movieService.GetPopularMoviesAsync(page);
-                }
-                else
-                {
-                    movies = await _movieService.SearchMoviesAsync(q, page);
+                    var searchResults = await _movieService.SearchMoviesAsync(q);
+                    viewModel.Movies = searchResults;
 
-                    if (!movies.Any())
+                    if (!searchResults.Any())
                     {
                         ShowInfo($"Nenhum filme encontrado para '{q}'. Tente outros termos de busca. 🔍");
                     }
                 }
-
-                var viewModel = new MovieIndexViewModel
+                catch (Exception ex)
                 {
-                    Movies = movies,
-                    Search = q,
-                    CurrentPage = page,
-                    ImageBaseUrl = _imageSettings.BaseUrl
-                };
-
-                return View("Index", viewModel);
+                    Console.WriteLine($"Erro na busca: {ex.Message}");
+                    ShowError("Erro na busca. Tente novamente.");
+                    viewModel.Movies = new List<Movie>();
+                }
             }
-            catch (Exception)
+            else
             {
-                ShowError("Erro na busca. Tente novamente.");
-                return View("Index", new MovieIndexViewModel { Movies = new List<Movie>(), ImageBaseUrl = _imageSettings.BaseUrl });
+                return RedirectToAction(nameof(Index));
             }
+
+            return View("Index", viewModel);
         }
     }
 }

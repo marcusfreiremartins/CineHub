@@ -4,6 +4,8 @@ namespace CineHub.Models.ViewModels.Movies
 {
     public class MovieIndexViewModel : BaseViewModel
     {
+        public List<Movie> PopularMovies { get; set; } = new();
+        public List<Movie> TopRatedMovies { get; set; } = new();
         public List<Movie> Movies { get; set; } = new();
         public int CurrentPage { get; set; } = 1;
         public int TotalPages { get; set; } = 1;

@@ -229,8 +229,8 @@ namespace CineHub.Services
                 .Where(r => r.MovieId == movieId && r.DeletionDate == null);
 
             var orderedQuery = query
-                .OrderByDescending(r => !string.IsNullOrEmpty(r.Comment))
-                .ThenByDescending(r => r.LastActivityDate);
+                .Where(r => !string.IsNullOrEmpty(r.Comment))
+                .OrderByDescending(r => r.LastActivityDate);
 
             var totalCount = await orderedQuery.CountAsync();
 

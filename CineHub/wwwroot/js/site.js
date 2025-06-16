@@ -15,6 +15,45 @@ document.addEventListener('DOMContentLoaded', function () {
             showToast('Faça login para acessar todas as funcionalidades do CineHub! 🎬', 'info', 7000);
         }, 500);
     }
+
+    // Navbar scroll animation
+    const navbar = document.querySelector('.navbar');
+
+    if (navbar) {
+        let lastScrollTop = 0;
+        let isScrolling = false;
+
+        const handleScroll = () => {
+            if (isScrolling) return;
+
+            isScrolling = true;
+            requestAnimationFrame(() => {
+                const currentScrollTop = window.scrollY || document.documentElement.scrollTop;
+
+                if (currentScrollTop > lastScrollTop && currentScrollTop > 100) {
+                    navbar.classList.add('navbar-hidden');
+                }
+                else if (currentScrollTop < lastScrollTop) {
+                    navbar.classList.remove('navbar-hidden');
+                }
+                else if (currentScrollTop <= 100) {
+                    navbar.classList.remove('navbar-hidden');
+                }
+
+                lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+                isScrolling = false;
+            });
+        };
+
+        // Throttle scroll events for better performance
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            if (scrollTimeout) {
+                clearTimeout(scrollTimeout);
+            }
+            scrollTimeout = setTimeout(handleScroll, 10);
+        });
+    }
 });
 
 // Security utilities
@@ -32,13 +71,11 @@ window.SecurityUtils = {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = content;
 
-        // Remove dangerous elements
         const dangerousElements = options.dangerousElements || APP_CONFIG.DANGEROUS_ELEMENTS;
         dangerousElements.forEach(selector => {
             tempDiv.querySelectorAll(selector).forEach(el => el.remove());
         });
 
-        // Sanitize attributes
         tempDiv.querySelectorAll('*').forEach(element => {
             [...element.attributes].forEach(attr => {
                 const isDangerous = attr.name.startsWith('on') ||

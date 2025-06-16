@@ -21,14 +21,14 @@ namespace CineHub.Services
         public async Task<List<Movie>> GetPopularMoviesAsync(int page = 1)
         {
             //var moviesFromDb = await _context.Movies
-                //.OrderByDescending(m => m.VoteCount)
-                //.Take(20)
-               // .ToListAsync();
+            //.OrderByDescending(m => m.VoteCount)
+            //.Take(20)
+            // .ToListAsync();
 
-           // if (moviesFromDb.Any())
-           // {
-                //return moviesFromDb;
-          //  }
+            // if (moviesFromDb.Any())
+            // {
+            //return moviesFromDb;
+            //  }
 
             var moviesFromApi = await _tmdbService.GetPopularMoviesAsync(page);
             var movies = new List<Movie>();
@@ -65,15 +65,15 @@ namespace CineHub.Services
             if (string.IsNullOrWhiteSpace(query))
                 return new List<Movie>();
 
-           // var moviesFromDb = await _context.Movies
-               // .Where(m => m.Title.Contains(query))
-               // .Take(20)
-              //  .ToListAsync();
+            // var moviesFromDb = await _context.Movies
+            // .Where(m => m.Title.Contains(query))
+            // .Take(20)
+            //  .ToListAsync();
 
             //if (moviesFromDb.Any())
-          //  {
-               // return moviesFromDb;
-           // }
+            //  {
+            // return moviesFromDb;
+            // }
 
             var moviesFromApi = await _tmdbService.SearchMoviesAsync(query, page);
             var movies = new List<Movie>();
@@ -125,6 +125,24 @@ namespace CineHub.Services
                 Console.WriteLine($"Erro ao salvar filme: {ex.Message}");
                 return null;
             }
+        }
+
+        // Gets top-rated movies from the API and ensures they're saved in the local database.
+        public async Task<List<Movie>> GetTopRatedMoviesAsync()
+        {
+            var moviesFromApi = await _tmdbService.GetTopRatedMoviesAsync();
+            var movies = new List<Movie>();
+
+            foreach (var movieDto in moviesFromApi)
+            {
+                var movie = await GetOrCreateMovieAsync(movieDto);
+                if (movie != null)
+                {
+                    movies.Add(movie);
+                }
+            }
+
+            return movies;
         }
     }
 }

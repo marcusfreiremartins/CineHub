@@ -1,0 +1,444 @@
+﻿/* Container for the entire movie carousel section */
+.movie-carousel-container {
+    margin-bottom: 3rem;
+    width: 100%;
+}
+
+/* Header section with title and navigation buttons */
+.movie-carousel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+    /* Carousel section title */
+    .movie-carousel-header h2 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin: 0;
+        color: #333;
+    }
+
+/* Wrapper for the carousel navigation buttons */
+.carousel-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Navigation button style (prev/next) */
+.carousel-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+    /* Hover effect for carousel button */
+    .carousel-btn:hover {
+        background: #0056b3;
+        transform: scale(1.1);
+    }
+
+    /* Disabled state for carousel button */
+    .carousel-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+/* Main carousel container */
+.movie-carousel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 15px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Track containing carousel items */
+.carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    gap: 1.5rem;
+    width: fit-content;
+}
+
+/* Individual movie card in carousel */
+.movie-card-carousel {
+    flex: 0 0 280px;
+    width: 280px;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+    /* Hover effect for movie card */
+    .movie-card-carousel:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    }
+
+/* Movie poster image styling */
+.movie-poster-carousel {
+    width: 100%;
+    height: 360px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+    display: block;
+}
+
+/* Enlarge poster on hover */
+.movie-card-carousel:hover .movie-poster-carousel {
+    transform: scale(1.05);
+}
+
+/* Placeholder for movies without posters */
+.movie-poster-placeholder {
+    width: 100%;
+    height: 360px;
+    background: linear-gradient(45deg, #f1f3f4, #e8eaed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #9aa0a6;
+}
+
+/* Section containing movie info text */
+.movie-info-carousel {
+    padding: 1.5rem;
+}
+
+/* Movie title styling */
+.movie-title-carousel {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    color: #333;
+    line-height: 1.3;
+    height: 2.6rem;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Section for year and rating */
+.movie-meta-carousel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+/* Release year text */
+.movie-year-carousel {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+/* Movie rating badge */
+.movie-rating-carousel {
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #333;
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Short movie overview text */
+.movie-overview-carousel {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0 0 1rem 0;
+    height: 3rem;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Button to view more details */
+.movie-btn-carousel {
+    width: 100%;
+    padding: 0.75rem;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+    /* Hover effect for movie button */
+    .movie-btn-carousel:hover {
+        background: linear-gradient(45deg, #0056b3, #004085);
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+
+/* Responsive layout tweaks */
+@media (max-width: 1200px) {
+    .movie-carousel {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .movie-carousel {
+        padding: 1rem;
+    }
+
+    .movie-card-carousel {
+        flex: 0 0 240px;
+        width: 240px;
+    }
+
+    .movie-poster-carousel,
+    .movie-poster-placeholder {
+        height: 300px;
+    }
+
+    .carousel-track {
+        gap: 1rem;
+    }
+
+    .movie-carousel-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .movie-carousel {
+        padding: 0.75rem;
+    }
+
+    .movie-card-carousel {
+        flex: 0 0 200px;
+        width: 200px;
+    }
+
+    .movie-poster-carousel,
+    .movie-poster-placeholder {
+        height: 250px;
+    }
+
+    .carousel-track {
+        gap: 0.75rem;
+    }
+}
+
+/* Enable smooth scroll animations */
+@media (prefers-reduced-motion: no-preference) {
+    .carousel-track {
+        scroll-behavior: smooth;
+    }
+}
+
+/* Focus outline for accessibility */
+.carousel-btn:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+.movie-card-carousel:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* Touch interaction tweaks */
+@media (hover: none) and (pointer: coarse) {
+    .movie-card-carousel:hover {
+        transform: none;
+    }
+
+    .movie-card-carousel:active {
+        transform: scale(0.98);
+    }
+}
+
+/* Container for "See More" button */
+.carousel-see-more {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+/* Base style for "See More" button */
+.see-more-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+    /* Shimmer animation for hover effect */
+    .see-more-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    /* Hover effect to trigger shimmer */
+    .see-more-btn:hover::before {
+        left: 100%;
+    }
+
+    /* Lift button slightly on hover */
+    .see-more-btn:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Pressed state effect */
+    .see-more-btn:active {
+        transform: translateY(-1px) scale(1.02);
+    }
+
+    /* Icon inside "See More" button */
+    .see-more-btn .icon {
+        font-size: 1.2em;
+        transition: transform 0.3s ease;
+    }
+
+    /* Move icon on hover */
+    .see-more-btn:hover .icon {
+        transform: translateX(3px);
+    }
+
+    /* Gold-themed version for top-rated section */
+    .see-more-btn.top-rated {
+        background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+        color: #333;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+    }
+
+        /* Hover effect for top-rated button */
+        .see-more-btn.top-rated:hover {
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+            color: #333;
+        }
+
+/* Responsive padding and size adjustments for See More */
+@media (max-width: 768px) {
+    .see-more-btn {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+        gap: 0.5rem;
+    }
+
+    .carousel-see-more {
+        margin-top: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .see-more-btn {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+        width: 100%;
+        max-width: 280px;
+        justify-content: center;
+    }
+
+    .carousel-see-more {
+        margin-top: 1rem;
+    }
+}
+
+/* Style for loading state of button */
+.see-more-btn.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+    /* Spin animation for loading icon */
+    .see-more-btn.loading .icon {
+        animation: spin 1s linear infinite;
+    }
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Focus outline for accessibility */
+.see-more-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+}
+
+.see-more-btn.top-rated:focus {
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+}
+
+/* Subtle pulse animation on hover */
+@keyframes subtle-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+.see-more-btn:hover {
+    animation: subtle-pulse 2s ease-in-out infinite;
+}
+
+.see-more-btn:active {
+    animation: none;
+}

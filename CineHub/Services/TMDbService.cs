@@ -88,5 +88,31 @@ namespace CineHub.Services
 
             return new List<MovieDTO>();
         }
+
+        // Top Rated Movies
+        public async Task<List<MovieDTO>> GetTopRatedMoviesAsync(int page = 1)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(
+                    $"{_baseUrl}/movie/top_rated?api_key={_apiKey}&page={page}&language=pt-BR"
+                );
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<TMDbResponse>(json);
+                    return result?.Results?.Where(m => m.VoteAverage >= 8.0)
+                                         ?.OrderByDescending(m => m.VoteAverage)
+                                         ?.ToList() ?? new List<MovieDTO>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while fetching top rated movies: {ex.Message}");
+            }
+
+            return new List<MovieDTO>();
+        }
     }
 }
