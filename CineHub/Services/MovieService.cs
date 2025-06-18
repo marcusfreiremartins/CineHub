@@ -144,5 +144,81 @@ namespace CineHub.Services
 
             return movies;
         }
+
+        // Adicione estes métodos à sua classe MovieService existente
+
+        // Método para pesquisa avançada com filtros
+        public async Task<List<Movie>> AdvancedSearchAsync(string? query = null, int? minRating = null, int? releaseYear = null, int page = 1)
+        {
+            List<Movie> movies = new List<Movie>();
+
+            // Se há uma query de texto, pesquise primeiro
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                movies = await SearchMoviesAsync(query, page);
+            }
+            else
+            {
+                // Se não há query, pegue filmes populares para filtrar
+                movies = await GetPopularMoviesAsync(page);
+            }
+
+            // Aplique os filtros
+            var filteredMovies = movies.AsQueryable();
+
+            // Filtro por nota mínima
+            if (minRating.HasValue)
+            {
+                filteredMovies = filteredMovies.Where(m => (int)Math.Round(m.VoteAverage) >= minRating.Value);
+            }
+
+            // Filtro por ano de lançamento
+            if (releaseYear.HasValue)
+            {
+                filteredMovies = filteredMovies.Where(m => m.ReleaseDate.HasValue && m.ReleaseDate.Value.Year == releaseYear.Value);
+            }
+
+            return filteredMovies.ToList();
+        }
+
+        // Método para obter filmes por ano específico
+        public async Task<List<Movie>> GetMoviesByYearAsync(int year, int page = 1)
+        {
+            // Primeiro tenta buscar no banco local
+            var moviesFromDb = await _context.Movies
+                .Where(m => m.ReleaseDate.HasValue && m.ReleaseDate.Value.Year == year)
+                .OrderByDescending(m => m.VoteAverage)
+                .Take(20)
+                .ToListAsync();
+
+            if (moviesFromDb.Any())
+            {
+                return moviesFromDb;
+            }
+
+            // Se não encontrar localmente, busca filmes populares e filtra
+            var popularMovies = await GetPopularMoviesAsync(page);
+            return popularMovies.Where(m => m.ReleaseDate.HasValue && m.ReleaseDate.Value.Year == year).ToList();
+        }
+
+        // Método para obter filmes por nota mínima
+        public async Task<List<Movie>> GetMoviesByMinRatingAsync(int minRating, int page = 1)
+        {
+            // Primeiro tenta buscar no banco local
+            var moviesFromDb = await _context.Movies
+                .Where(m => (int)Math.Round(m.VoteAverage) >= minRating)
+                .OrderByDescending(m => m.VoteAverage)
+                .Take(20)
+                .ToListAsync();
+
+            if (moviesFromDb.Any())
+            {
+                return moviesFromDb;
+            }
+
+            // Se não encontrar localmente, busca filmes populares e filtra
+            var popularMovies = await GetPopularMoviesAsync(page);
+            return popularMovies.Where(m => (int)Math.Round(m.VoteAverage) >= minRating).ToList();
+        }
     }
 }

@@ -24,7 +24,7 @@ namespace CineHub.Controllers
         }
 
         // Displays a list of movies, with optional search and pagination
-        public async Task<IActionResult> Index(string search = "", int page = 1)
+        public async Task<IActionResult> Popular(string search = "", int page = 1)
         {
             try
             {

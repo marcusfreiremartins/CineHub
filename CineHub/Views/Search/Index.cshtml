@@ -1,0 +1,422 @@
+﻿@model CineHub.Models.ViewModels.Search.SearchIndexViewModel
+@{
+    ViewData["Title"] = "Pesquisa";
+}
+
+<div class="container my-4">
+    <!-- Search Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-4 text-center mb-3">
+                <i class="fas fa-search me-2"></i>
+                Pesquisa
+            </h1>
+        </div>
+    </div>
+
+    <!-- Search Form -->
+    <div class="row mb-4">
+        <!-- Filters Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>
+                        Filtros de Pesquisa
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-controller="Search" asp-action="Results" method="get" id="searchForm">
+                        <!-- Search Type Selection -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-search me-1"></i>
+                                Tipo de Pesquisa
+                            </label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="searchType" id="searchMovies" value="movies" checked>
+                                <label class="btn btn-outline-primary" for="searchMovies">
+                                    <i class="fas fa-film me-1"></i>
+                                    Filmes
+                                </label>
+                                
+                                <input type="radio" class="btn-check" name="searchType" id="searchPeople" value="people" disabled>
+                                <label class="btn btn-outline-secondary" for="searchPeople" title="Em breve">
+                                    <i class="fas fa-users me-1"></i>
+                                    Pessoas
+                                </label>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                Pesquisa de pessoas (atores, diretores) em breve!
+                            </small>
+                        </div>
+
+                        <!-- Movie Search Filters -->
+                        <div id="movieFilters">
+                            <!-- Search Query -->
+                            <div class="mb-3">
+                                <label for="query" class="form-label fw-bold">
+                                    <i class="fas fa-film me-1"></i>
+                                    Nome do Filme
+                                </label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="query" 
+                                       name="query" 
+                                       value="@Model.SearchQuery"
+                                       placeholder="Digite o nome do filme...">
+                            </div>
+
+                            <!-- Minimum Rating -->
+                            <div class="mb-3">
+                                <label for="minRating" class="form-label fw-bold">
+                                    <i class="fas fa-star me-1"></i>
+                                    Nota Mínima
+                                </label>
+                                <select class="form-select" id="minRating" name="minRating">
+                                    <option value="">Qualquer nota</option>
+                                    @for (int i = 1; i <= 10; i++)
+                                    {
+                                        var starText = i == 1 ? "estrela" : "estrelas";
+                                        if (Model.MinRating == i)
+                                        {
+                                            <option value="@i" selected>@i @starText</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@i">@i @starText</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+
+                            <!-- Release Year -->
+                            <div class="mb-3">
+                                <label for="releaseYear" class="form-label fw-bold">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    Ano de Lançamento
+                                </label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="releaseYear" 
+                                       name="releaseYear" 
+                                       min="1900" 
+                                       max="@DateTime.Now.Year"
+                                       value="@Model.ReleaseYear"
+                                       placeholder="Ex: 2023">
+                            </div>
+
+                            <!-- Future filters placeholder -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-tags me-1"></i>
+                                    Gênero <small>(em breve)</small>
+                                </label>
+                                <select class="form-select" disabled>
+                                    <option>Todos os gêneros</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Duração <small>(em breve)</small>
+                                </label>
+                                <select class="form-select" disabled>
+                                    <option>Qualquer duração</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- People Search Filters (hidden for now) -->
+                        <div id="peopleFilters" style="display: none;">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user me-1"></i>
+                                    Nome da Pessoa
+                                </label>
+                                <input type="text" class="form-control" placeholder="Digite o nome..." disabled>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-briefcase me-1"></i>
+                                    Função
+                                </label>
+                                <select class="form-select" disabled>
+                                    <option>Todas as funções</option>
+                                    <option>Ator/Atriz</option>
+                                    <option>Diretor</option>
+                                    <option>Produtor</option>
+                                    <option>Roteirista</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i>
+                                Pesquisar
+                            </button>
+                            @if (Model.HasActiveFilters)
+                            {
+                                <a asp-controller="Search" asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>
+                                    Limpar Filtros
+                                </a>
+                            }
+                        </div>
+
+                        <!-- Active Filters Display -->
+                        @if (Model.HasActiveFilters)
+                        {
+                            <div class="mt-3 pt-3 border-top">
+                                <small class="text-muted d-block mb-2">Filtros ativos:</small>
+                                @if (!string.IsNullOrWhiteSpace(Model.SearchQuery))
+                                {
+                                    <span class="badge bg-primary me-1 mb-1">
+                                        <i class="fas fa-film me-1"></i>
+                                        @Model.SearchQuery
+                                    </span>
+                                }
+                                @if (Model.MinRating.HasValue)
+                                {
+                                    <span class="badge bg-warning text-dark me-1 mb-1">
+                                        <i class="fas fa-star me-1"></i>
+                                        Nota ≥ @Model.MinRating
+                                    </span>
+                                }
+                                @if (Model.ReleaseYear.HasValue)
+                                {
+                                    <span class="badge bg-info me-1 mb-1">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        @Model.ReleaseYear
+                                    </span>
+                                }
+                            </div>
+                        }
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Area -->
+        <div class="col-lg-9">
+            <div class="search-results-container">
+
+    <!-- Search Results -->
+    @if (Model.HasSearched)
+    {
+        <!-- Results Header -->
+        <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>
+                    @if (Model.HasResults)
+                    {
+                        <span class="text-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            @Model.ResultsCount filme@(Model.ResultsCount != 1 ? "s" : "") encontrado@(Model.ResultsCount != 1 ? "s" : "")
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Nenhum resultado encontrado
+                        </span>
+                    }
+                </h3>
+            </div>
+        </div>
+
+        <!-- Movies Grid -->
+        @if (Model.HasResults)
+        {
+            <div class="row">
+                @foreach (var movie in Model.Movies)
+                {
+                    <div class="col-xl-4 col-lg-6 col-md-12 mb-4">
+                        <div class="card h-100 movie-card">
+                            <!-- Movie Poster -->
+                            <div class="position-relative">
+                                @if (!string.IsNullOrEmpty(movie.PosterPath))
+                                {
+                                    <img src="@Model.ImageBaseUrl@movie.PosterPath" 
+                                         class="card-img-top" 
+                                         alt="@movie.Title"
+                                         style="height: 350px; object-fit: cover;">
+                                }
+                                else
+                                {
+                                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light" 
+                                         style="height: 350px;">
+                                        <i class="fas fa-film fa-3x text-muted"></i>
+                                    </div>
+                                }
+                                
+                                <!-- Rating Badge -->
+                                <div class="position-absolute top-0 end-0 m-2">
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-star me-1"></i>
+                                        @movie.VoteAverage.ToString("F1")
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Movie Info -->
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">@movie.Title</h5>
+                                
+                                @if (movie.ReleaseDate.HasValue)
+                                {
+                                    <p class="card-text text-muted mb-2">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        @movie.ReleaseDate.Value.ToString("yyyy")
+                                    </p>
+                                }
+
+                                @if (!string.IsNullOrEmpty(movie.Overview))
+                                {
+                                    <p class="card-text flex-grow-1">
+                                        @(movie.Overview.Length > 120 ? movie.Overview.Substring(0, 120) + "..." : movie.Overview)
+                                    </p>
+                                }
+
+                                <!-- Action Button -->
+                                <div class="mt-auto">
+                                    <a asp-controller="Movies" asp-action="Details" asp-route-id="@movie.Id" 
+                                       class="btn btn-primary w-100">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Ver Detalhes
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- No Results Message -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-search fa-5x text-muted"></i>
+                </div>
+                <h4 class="text-muted mb-3">Nenhum filme encontrado</h4>
+                <p class="text-muted mb-4">
+                    Tente ajustar seus filtros de pesquisa ou use termos diferentes.
+                </p>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a asp-controller="Movies" asp-action="Popular" class="btn btn-outline-primary">
+                        <i class="fas fa-fire me-1"></i>
+                        Ver Filmes Populares
+                    </a>
+                    <a asp-controller="Search" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo me-1"></i>
+                        Nova Pesquisa
+                    </a>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <!-- Welcome Message -->
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-search fa-5x text-muted"></i>
+            </div>
+            <h4 class="text-muted mb-3">Pronto para encontrar seu próximo filme favorito?</h4>
+            <p class="text-muted mb-4">
+                Use os filtros ao lado para pesquisar por nome, nota mínima ou ano de lançamento.
+            </p>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <a asp-controller="Movies" asp-action="Popular" class="btn btn-outline-primary">
+                    <i class="fas fa-fire me-1"></i>
+                    Filmes Populares
+                </a>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-home me-1"></i>
+                    Início
+                </a>
+            </div>
+        </div>
+    }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.movie-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.movie-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.form-label {
+    font-weight: 600;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.btn-check:checked + .btn-outline-primary {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.search-results-container {
+    min-height: 400px;
+}
+
+@@media (max-width: 991.98px) {
+    .col-lg-3 {
+        order: 2;
+    }
+    .col-lg-9 {
+        order: 1;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle between movie and people search filters
+    const movieRadio = document.getElementById('searchMovies');
+    const peopleRadio = document.getElementById('searchPeople');
+    const movieFilters = document.getElementById('movieFilters');
+    const peopleFilters = document.getElementById('peopleFilters');
+    
+    function toggleFilters() {
+        if (movieRadio.checked) {
+            movieFilters.style.display = 'block';
+            peopleFilters.style.display = 'none';
+        } else {
+            movieFilters.style.display = 'none';
+            peopleFilters.style.display = 'block';
+        }
+    }
+    
+    movieRadio.addEventListener('change', toggleFilters);
+    peopleRadio.addEventListener('change', toggleFilters);
+    
+    // Auto-submit form when filters change (optional)
+    const form = document.getElementById('searchForm');
+    const autoSubmitElements = form.querySelectorAll('select, input[type="number"]');
+    
+    autoSubmitElements.forEach(element => {
+        element.addEventListener('change', function() {
+            // Uncomment below line if you want auto-submit on filter change
+            // form.submit();
+        });
+    });
+});
+</script>

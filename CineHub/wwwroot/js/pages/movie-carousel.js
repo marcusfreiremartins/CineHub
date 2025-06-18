@@ -10,7 +10,7 @@ class MovieCarousel {
         this.currentPage = 0;
         this.totalPages = Math.ceil(this.items.length / this.itemsPerPage);
 
-        // Propriedades para controle de layout
+        // Propriedades para controle de layout - CORRIGIDAS
         this.cardWidth = 280;
         this.cardGap = 24;
         this.carouselPadding = 64;
@@ -45,20 +45,37 @@ class MovieCarousel {
         const containerRect = this.container.getBoundingClientRect();
         const availableWidth = containerRect.width - this.carouselPadding;
 
+        // Definir tamanhos de card responsivos - CORRIGIDO
+        let currentCardWidth = this.cardWidth;
+
+        if (window.innerWidth <= 480) {
+            currentCardWidth = 200;
+            this.cardWidth = 200;
+        } else if (window.innerWidth <= 768) {
+            currentCardWidth = 240;
+            this.cardWidth = 240;
+        } else if (window.innerWidth <= 1200) {
+            currentCardWidth = 260;
+            this.cardWidth = 260;
+        } else {
+            currentCardWidth = 280;
+            this.cardWidth = 280;
+        }
+
         // Calculate how many items can fit based on screen width
-        const maxItemsBasedOnWidth = Math.floor(availableWidth / (this.cardWidth + this.cardGap));
+        const maxItemsBasedOnWidth = Math.floor(availableWidth / (currentCardWidth + this.cardGap));
 
         // Set responsive itemsPerPage based on screen width with maximum constraint
         if (window.innerWidth <= 480) {
-            this.itemsPerPage = Math.min(1, maxItemsBasedOnWidth);
+            this.itemsPerPage = Math.max(1, Math.min(1, maxItemsBasedOnWidth));
         } else if (window.innerWidth <= 768) {
-            this.itemsPerPage = Math.min(2, maxItemsBasedOnWidth);
+            this.itemsPerPage = Math.max(1, Math.min(2, maxItemsBasedOnWidth));
         } else if (window.innerWidth <= 1024) {
-            this.itemsPerPage = Math.min(3, maxItemsBasedOnWidth);
+            this.itemsPerPage = Math.max(1, Math.min(3, maxItemsBasedOnWidth));
         } else if (window.innerWidth <= 1200) {
-            this.itemsPerPage = Math.min(4, maxItemsBasedOnWidth);
+            this.itemsPerPage = Math.max(1, Math.min(4, maxItemsBasedOnWidth));
         } else {
-            this.itemsPerPage = Math.min(5, maxItemsBasedOnWidth);
+            this.itemsPerPage = Math.max(1, Math.min(5, maxItemsBasedOnWidth));
         }
 
         // Ensure at least 1 item per page
@@ -72,9 +89,17 @@ class MovieCarousel {
             this.currentPage = Math.max(0, this.totalPages - 1);
         }
 
-        // Set the track width to accommodate all items
-        const totalTrackWidth = this.items.length * (this.cardWidth + this.cardGap) - this.cardGap;
+        // Set the track width to accommodate all items - CORRIGIDO
+        const totalTrackWidth = this.items.length * (currentCardWidth + this.cardGap) - this.cardGap;
         this.track.style.width = `${totalTrackWidth}px`;
+
+        // Aplicar largura consistente aos cards - NOVO
+        this.items.forEach(item => {
+            item.style.width = `${currentCardWidth}px`;
+            item.style.minWidth = `${currentCardWidth}px`;
+            item.style.maxWidth = `${currentCardWidth}px`;
+            item.style.flex = `0 0 ${currentCardWidth}px`;
+        });
 
         // Update transform and buttons
         this.updateTransform();
@@ -98,7 +123,7 @@ class MovieCarousel {
     }
 
     updateTransform() {
-        // Calculate translation based on current page and items per page
+        // Calculate translation based on current page and items per page - CORRIGIDO
         const itemsToMove = this.currentPage * this.itemsPerPage;
         const translateX = itemsToMove * (this.cardWidth + this.cardGap);
 
@@ -215,4 +240,18 @@ function truncateText(text, maxLength) {
 // Export for module use if needed
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = MovieCarousel;
+}
+
+const allCards = Array.from(this.items);
+if (allCards.length > 0) {
+    // Reset heights first
+    allCards.forEach(card => card.style.height = 'auto');
+
+    // Get the tallest card height
+    const maxHeight = Math.max(...allCards.map(card => card.offsetHeight));
+
+    // Apply the same height to all cards
+    allCards.forEach(card => {
+        card.style.height = `${maxHeight}px`;
+    });
 }

@@ -5,27 +5,6 @@
 
 <link rel="stylesheet" href="~/css/pages/movie-carousel.css" />
 
-<div class="hero-section bg-primary text-white p-5 rounded mb-4">
-    <div class="text-center">
-        <h1 class="display-4 fw-bold">🎬 Bem-vindo ao CineHub!</h1>
-        <p class="lead">Organize, favorite e faça análises dos filmes que você assistiu.</p>
-
-        <form asp-controller="Home" asp-action="Search" method="get" class="mt-4">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="input-group input-group-lg">
-                        <input type="text" class="form-control" name="q"
-                               placeholder="Pesquisar filmes..." value="@Model.Search">
-                        <button class="btn btn-warning" type="submit">
-                            🔍 Buscar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
 @if (!string.IsNullOrEmpty(Model.Search))
 {
     <div class="alert alert-info">
@@ -183,7 +162,7 @@ else
     {
         <div class="movie-carousel-container" id="top-rated-carousel">
             <div class="movie-carousel-header">
-                <h2>🏆 Top 10 Melhores Avaliados</h2>
+                <h2>🏆 Melhores Avaliados</h2>
                 <div class="carousel-controls">
                     <button class="carousel-btn carousel-prev" type="button">
                         <i class="fas fa-chevron-left"></i>
