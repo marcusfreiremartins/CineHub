@@ -50,19 +50,12 @@ namespace CineHub.Controllers
 
                 if (hasSearched)
                 {
-                    // Search by query if provided
-                    if (!string.IsNullOrWhiteSpace(query))
-                    {
-                        movies = await _movieService.SearchMoviesAsync(query, page);
-                    }
-                    else
-                    {
-                        // If no query but has filters, get popular movies to filter
-                        movies = await _movieService.GetPopularMoviesAsync(page);
-                    }
-
-                    // Apply filters
-                    movies = ApplyFilters(movies, minRating, releaseYear);
+                    movies = await _movieService.AdvancedSearchAsync(
+                        query: !string.IsNullOrWhiteSpace(query) ? query : null,
+                        minRating: minRating,
+                        releaseYear: releaseYear,
+                        page: page
+                    );
 
                     if (!movies.Any() && hasSearched)
                     {
@@ -85,10 +78,13 @@ namespace CineHub.Controllers
 
                 return View("Index", viewModel);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine($"Erro na busca: {ex.Message}");
+
                 TempData["Error"] = "Erro ao realizar a pesquisa. Tente novamente mais tarde.";
                 bool hasSearchedForError = !string.IsNullOrWhiteSpace(query) || minRating.HasValue || releaseYear.HasValue;
+
                 return View("Index", new SearchIndexViewModel
                 {
                     ImageBaseUrl = _imageSettings.BaseUrl,
@@ -99,26 +95,6 @@ namespace CineHub.Controllers
                     HasSearched = hasSearchedForError
                 });
             }
-        }
-
-        // Apply filters to the movie list
-        private List<Movie> ApplyFilters(List<Movie> movies, int? minRating, int? releaseYear)
-        {
-            var filteredMovies = movies.AsQueryable();
-
-            // Filter by minimum rating
-            if (minRating.HasValue)
-            {
-                filteredMovies = filteredMovies.Where(m => (int)Math.Round(m.VoteAverage) >= minRating.Value);
-            }
-
-            // Filter by release year
-            if (releaseYear.HasValue)
-            {
-                filteredMovies = filteredMovies.Where(m => m.ReleaseDate.HasValue && m.ReleaseDate.Value.Year == releaseYear.Value);
-            }
-
-            return filteredMovies.ToList();
         }
 
         // Build filter message for user feedback

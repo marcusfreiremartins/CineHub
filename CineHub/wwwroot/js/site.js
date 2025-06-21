@@ -1,6 +1,5 @@
-﻿// Global application initializations on DOM ready
-document.addEventListener('DOMContentLoaded', function () {
-    // Check if toast container exists, create if not
+﻿document.addEventListener('DOMContentLoaded', function () {
+    // Verificar se o container de toast existe, criar se não existir
     if (!document.getElementById('toast-container')) {
         const toastContainer = document.createElement('div');
         toastContainer.id = 'toast-container';
@@ -8,57 +7,70 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.appendChild(toastContainer);
     }
 
-    // Show welcome message if flag is set
+    // Mostrar mensagem de boas-vindas se a flag estiver definida
     const shouldShowWelcome = document.body.getAttribute('data-show-welcome');
     if (shouldShowWelcome === 'true') {
         setTimeout(() => {
-            showToast('Faça login para acessar todas as funcionalidades do CineHub! 🎬', 'info', 7000);
-        }, 500);
-    }
-
-    // Navbar scroll animation
-    const navbar = document.querySelector('.navbar');
-
-    if (navbar) {
-        let lastScrollTop = 0;
-        let isScrolling = false;
-
-        const handleScroll = () => {
-            if (isScrolling) return;
-
-            isScrolling = true;
-            requestAnimationFrame(() => {
-                const currentScrollTop = window.scrollY || document.documentElement.scrollTop;
-
-                if (currentScrollTop > lastScrollTop && currentScrollTop > 100) {
-                    navbar.classList.add('navbar-hidden');
-                }
-                else if (currentScrollTop < lastScrollTop) {
-                    navbar.classList.remove('navbar-hidden');
-                }
-                else if (currentScrollTop <= 100) {
-                    navbar.classList.remove('navbar-hidden');
-                }
-
-                lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
-                isScrolling = false;
-            });
-        };
-
-        // Throttle scroll events for better performance
-        let scrollTimeout;
-        window.addEventListener('scroll', () => {
-            if (scrollTimeout) {
-                clearTimeout(scrollTimeout);
+            if (typeof showToast === 'function') {
+                showToast('Faça login para acessar todas as funcionalidades do CineHub! 🎬', 'info', 7000);
             }
-            scrollTimeout = setTimeout(handleScroll, 10);
-        });
+        }, APP_CONFIG.TIMING.WELCOME_DELAY);
     }
+
+    // Inicializar gerenciador da navbar
+    initializeNavbar();
+
+    // Inicializar acessibilidade
+    initializeAccessibility();
 });
 
-// Security utilities
+// Gerenciador da navbar com scroll
+function initializeNavbar() {
+    const navbar = document.querySelector(APP_CONFIG.SELECTORS.NAVBAR);
+
+    if (!navbar) return;
+
+    let lastScrollTop = 0;
+    let isScrolling = false;
+    let scrollTimeout;
+
+    const handleScroll = () => {
+        if (isScrolling) return;
+
+        isScrolling = true;
+        requestAnimationFrame(() => {
+            const currentScrollTop = window.scrollY || document.documentElement.scrollTop;
+
+            if (currentScrollTop > lastScrollTop && currentScrollTop > APP_CONFIG.LIMITS.NAVBAR_HIDE_THRESHOLD) {
+                navbar.classList.add('navbar-hidden');
+            } else if (currentScrollTop < lastScrollTop) {
+                navbar.classList.remove('navbar-hidden');
+            } else if (currentScrollTop <= APP_CONFIG.LIMITS.NAVBAR_HIDE_THRESHOLD) {
+                navbar.classList.remove('navbar-hidden');
+            }
+
+            lastScrollTop = currentScrollTop <= 0 ? 0 : currentScrollTop;
+            isScrolling = false;
+        });
+    };
+
+    // Throttle de eventos de scroll para melhor performance
+    window.addEventListener('scroll', () => {
+        if (scrollTimeout) {
+            clearTimeout(scrollTimeout);
+        }
+        scrollTimeout = setTimeout(handleScroll, APP_CONFIG.TIMING.SCROLL_THROTTLE);
+    });
+}
+
+// Inicializar recursos de acessibilidade
+function initializeAccessibility() {
+    AccessibilityUtils.enhanceRatingElements();
+    AccessibilityUtils.addTooltips();
+}
+
+// Utilitários de segurança
 window.SecurityUtils = {
-    // Sanitize plain text to prevent XSS
     sanitizeText(text) {
         if (!text) return '';
         const div = document.createElement('div');
@@ -66,12 +78,11 @@ window.SecurityUtils = {
         return div.innerHTML;
     },
 
-    // Sanitize complex HTML content
     sanitizeHtmlContent(content, options = {}) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = content;
 
-        const dangerousElements = options.dangerousElements || APP_CONFIG.DANGEROUS_ELEMENTS;
+        const dangerousElements = options.dangerousElements || APP_CONFIG.SECURITY.DANGEROUS_ELEMENTS;
         dangerousElements.forEach(selector => {
             tempDiv.querySelectorAll(selector).forEach(el => el.remove());
         });
@@ -80,14 +91,14 @@ window.SecurityUtils = {
             [...element.attributes].forEach(attr => {
                 const isDangerous = attr.name.startsWith('on') ||
                     attr.name === 'javascript:' ||
-                    APP_CONFIG.DANGEROUS_ATTRIBUTES.includes(attr.name);
+                    APP_CONFIG.SECURITY.DANGEROUS_ATTRIBUTES.includes(attr.name);
 
                 if (isDangerous) {
                     element.removeAttribute(attr.name);
                 }
             });
 
-            const classesToRemove = options.classesToRemove || APP_CONFIG.CLASSES_TO_REMOVE;
+            const classesToRemove = options.classesToRemove || APP_CONFIG.SECURITY.CLASSES_TO_REMOVE;
             classesToRemove.forEach(className => {
                 element.classList.remove(className);
             });
@@ -97,7 +108,7 @@ window.SecurityUtils = {
     }
 };
 
-// Animation utilities
+// Utilitários de animação
 window.AnimationUtils = {
     fadeElement(element, direction, options = {}) {
         return new Promise(resolve => {
@@ -106,8 +117,8 @@ window.AnimationUtils = {
                 return;
             }
 
-            const duration = options.duration || APP_CONFIG.ANIMATION.FADE_DURATION;
-            const inDuration = options.inDuration || APP_CONFIG.ANIMATION.FADE_IN_DURATION;
+            const duration = options.duration || APP_CONFIG.TIMING.FADE_DURATION;
+            const inDuration = options.inDuration || APP_CONFIG.TIMING.FADE_IN_DURATION;
 
             if (direction === 'out') {
                 element.style.cssText = `transition: opacity ${duration}ms ease-out, transform ${duration}ms ease-out; opacity: 0; transform: translateY(-10px);`;
@@ -127,8 +138,8 @@ window.AnimationUtils = {
     },
 
     staggerElements(elements, options = {}) {
-        const delay = options.delay || APP_CONFIG.ANIMATION.ITEM_STAGGER_DELAY;
-        const duration = options.duration || APP_CONFIG.ANIMATION.FADE_IN_DURATION;
+        const delay = options.delay || APP_CONFIG.TIMING.ITEM_STAGGER_DELAY;
+        const duration = options.duration || APP_CONFIG.TIMING.FADE_IN_DURATION;
 
         elements.forEach((element, index) => {
             setTimeout(() => {
@@ -142,7 +153,7 @@ window.AnimationUtils = {
     }
 };
 
-// UI templates
+// Templates de UI
 window.UITemplates = {
     getLoadingTemplate(message = 'Carregando...') {
         return `
@@ -158,7 +169,6 @@ window.UITemplates = {
     getErrorTemplate(message, options = {}) {
         const sanitizedMessage = SecurityUtils.sanitizeText(message);
         const showRetry = options.showRetry !== false;
-        const retryCallback = options.retryCallback || 'location.reload()';
         const customRetryCallback = options.customRetryCallback;
 
         let buttons = `
@@ -190,7 +200,7 @@ window.UITemplates = {
     }
 };
 
-// URL utilities
+// Utilitários de URL
 window.UrlUtils = {
     getUrlParameter(name) {
         const urlParams = new URLSearchParams(window.location.search);
@@ -223,7 +233,7 @@ window.UrlUtils = {
     }
 };
 
-// Accessibility utilities
+// Utilitários de acessibilidade
 window.AccessibilityUtils = {
     enhanceRatingElements(selector = APP_CONFIG.SELECTORS.RATING_STARS) {
         const ratingElements = document.querySelectorAll(selector);
@@ -280,7 +290,7 @@ window.AccessibilityUtils = {
     }
 };
 
-// HTTP request utilities
+// Utilitários HTTP
 window.HttpUtils = {
     async fetchWithDefaults(url, options = {}) {
         const defaultOptions = {
@@ -330,13 +340,13 @@ window.HttpUtils = {
     }
 };
 
-// Scroll utilities
+// Utilitários de scroll
 window.ScrollUtils = {
     scrollToElement(selector, options = {}) {
         const element = typeof selector === 'string' ? document.querySelector(selector) : selector;
 
         if (element) {
-            const delay = options.delay || APP_CONFIG.ANIMATION.SCROLL_DELAY;
+            const delay = options.delay || APP_CONFIG.TIMING.SCROLL_DELAY;
             const behavior = options.behavior || 'smooth';
             const block = options.block || 'start';
             const inline = options.inline || 'nearest';

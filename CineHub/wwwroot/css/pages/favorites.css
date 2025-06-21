@@ -1,0 +1,342 @@
+﻿/* ===== ESTILOS ESPECÍFICOS PARA FAVORITOS ===== */
+
+/* Badge de favorito sempre ativo */
+.movie-favorite-badge-active {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    color: white;
+    padding: 8px 10px;
+    border-radius: 50%;
+    font-size: 16px;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    animation: heartbeat 2s ease-in-out infinite;
+    transition: all 0.3s ease;
+}
+
+@keyframes heartbeat {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* Botão de remover favorito no overlay */
+.movie-remove-favorite-btn {
+    background: rgba(220, 53, 69, 0.9);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+    .movie-remove-favorite-btn:hover {
+        background: #dc3545;
+        transform: scale(1.1);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+/* Data de quando foi favoritado */
+.movie-favorite-date {
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background: rgba(220, 53, 69, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #dc3545;
+}
+
+    .movie-favorite-date small {
+        color: #dc3545 !important;
+        font-weight: 500;
+    }
+
+/* Animação de remoção */
+.movie-card-favorite.removing {
+    animation: slideOutLeft 0.5s ease-in-out forwards;
+}
+
+@keyframes slideOutLeft {
+    0% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: translateX(-50px) scale(0.9);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateX(-100%) scale(0.8);
+    }
+}
+
+/* Estado vazio melhorado */
+#emptyFavoritesState {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    padding: 3rem 2rem;
+    margin: 2rem 0;
+}
+
+    #emptyFavoritesState .display-1 {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+/* Loading state para remoção */
+.movie-card-favorite.loading {
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+    .movie-card-favorite.loading .movie-remove-favorite-btn {
+        animation: spin 1s linear infinite;
+    }
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Contador de favoritos melhorado */
+.favorite-counter {
+    background: rgba(220, 53, 69, 0.1);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+    .favorite-counter small {
+        color: #dc3545 !important;
+        font-weight: 600;
+    }
+
+/* ===== SISTEMA DE HOVER APENAS NA IMAGEM ===== */
+
+/* Garantir que o container da imagem seja posicionado relativamente */
+.movie-poster-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 15px 15px 0 0;
+}
+
+/* Overlay que aparece APENAS no hover da imagem - INICIALMENTE INVISÍVEL */
+.movie-card-favorite .movie-hover-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(3px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 10;
+    border-radius: 15px 15px 0 0;
+    pointer-events: none;
+}
+
+/* COMPORTAMENTO PRINCIPAL: Mostrar overlay APENAS no hover do container da imagem */
+.movie-card-favorite .movie-poster-container:hover .movie-hover-overlay {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+
+/* Botão do coração no centro do overlay */
+.movie-heart-remove-btn {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+    .movie-heart-remove-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 12px 35px rgba(220, 53, 69, 0.6);
+        background: linear-gradient(45deg, #c82333, #a71e2a);
+    }
+
+    .movie-heart-remove-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* Animação de pulso para o coração */
+    .movie-heart-remove-btn::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        animation: heartPulse 2s ease-in-out infinite;
+    }
+
+@keyframes heartPulse {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0;
+    }
+}
+
+/* Texto de instrução abaixo do coração */
+.movie-remove-instruction {
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+    text-align: center;
+    opacity: 0;
+    animation: fadeInUp 0.5s ease 0.3s forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Efeito de desbotamento APENAS na imagem durante hover */
+.movie-card-favorite .movie-poster-container:hover .movie-poster-global {
+    filter: grayscale(0.3) brightness(0.7);
+    transition: filter 0.3s ease;
+}
+
+/* Badge de favorito menos proeminente durante hover da imagem */
+.movie-card-favorite .movie-poster-container:hover .movie-favorite-badge-active {
+    opacity: 0.4;
+    transform: scale(0.8);
+}
+
+/* Estado de loading para o botão coração */
+.movie-heart-remove-btn.loading {
+    animation: spin 1s linear infinite;
+    pointer-events: none;
+}
+
+    .movie-heart-remove-btn.loading::before {
+        animation: none;
+    }
+
+/* ===== ÁREA DE CONTEÚDO (BOTÕES) SEM INTERFERÊNCIA ===== */
+
+/* Manter a área de conteúdo normal, sem hover effects que atrapalhem */
+.movie-card-favorite .movie-content-global {
+    position: relative;
+    z-index: 1;
+    background: white;
+    border-radius: 0 0 15px 15px;
+}
+
+/* Melhorar o botão "Ver Detalhes" */
+.movie-card-favorite .movie-btn-global {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    font-weight: 600;
+    padding: 14px;
+    transition: all 0.3s ease;
+    border: none;
+    color: white;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    border-radius: 8px;
+}
+
+    .movie-card-favorite .movie-btn-global:hover {
+        background: linear-gradient(45deg, #0056b3, #004085);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+/* Estilo para os botões de ação */
+.movie-actions-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.movie-btn-danger {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+    .movie-btn-danger:hover {
+        background: linear-gradient(45deg, #c82333, #a71e2a);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+    }
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .movie-heart-remove-btn {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+
+    .movie-remove-instruction {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+
+    .movie-actions-buttons {
+        flex-direction: column;
+    }
+
+    .movie-favorite-date {
+        margin-bottom: 12px;
+        padding: 6px 10px;
+    }
+}

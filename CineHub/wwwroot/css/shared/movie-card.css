@@ -1,0 +1,296 @@
+﻿/* ===== MOVIE CARD GLOBAL COMPONENT ===== */
+
+/* Container base para cartões de filme */
+.movie-card-global {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: pointer;
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+    /* Efeitos de hover */
+    .movie-card-global:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    .movie-card-global:active {
+        transform: translateY(-4px);
+    }
+
+/* Container da imagem do poster */
+.movie-poster-container {
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+/* Imagem do poster */
+.movie-poster-global {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+    display: block;
+}
+
+.movie-card-global:hover .movie-poster-global {
+    transform: scale(1.05);
+}
+
+/* Placeholder para filmes sem poster */
+.movie-poster-placeholder-global {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, #f1f3f4, #e8eaed);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #9aa0a6;
+}
+
+/* Badge de ranking (para top rated) */
+.movie-ranking-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #333;
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Conteúdo do cartão */
+.movie-content-global {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Título do filme */
+.movie-title-global {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    color: #333;
+    line-height: 1.3;
+    height: 4.3rem;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* Meta informações (ano e rating) */
+.movie-meta-global {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.movie-year-global {
+    color: #666;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.movie-rating-global {
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #333;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Botão principal */
+.movie-btn-global {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-top: auto;
+}
+
+    .movie-btn-global:hover {
+        background: linear-gradient(45deg, #0056b3, #004085);
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+/* ===== VARIAÇÕES DE TAMANHO ===== */
+
+/* Tamanho padrão */
+.movie-card-standard .movie-poster-container {
+    height: 350px;
+}
+
+/* Tamanho compacto */
+.movie-card-compact .movie-poster-container {
+    height: 280px;
+}
+
+.movie-card-compact .movie-content-global {
+    padding: 16px;
+}
+
+.movie-card-compact .movie-title-global {
+    font-size: 1rem;
+    height: 2.2rem;
+    -webkit-line-clamp: 2;
+}
+
+/* Tamanho grande */
+.movie-card-large .movie-poster-container {
+    height: 400px;
+}
+
+.movie-card-large .movie-content-global {
+    padding: 24px;
+}
+
+.movie-card-large .movie-title-global {
+    font-size: 1.2rem;
+    height: 3rem;
+}
+
+/* ===== RESPONSIVIDADE ===== */
+
+@media (max-width: 768px) {
+    .movie-card-global {
+        margin-bottom: 20px;
+    }
+
+    .movie-card-standard .movie-poster-container,
+    .movie-card-large .movie-poster-container {
+        height: 320px;
+    }
+
+    .movie-content-global {
+        padding: 16px;
+    }
+
+    .movie-title-global {
+        font-size: 1rem;
+    }
+
+    .movie-actions-overlay {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .movie-card-standard .movie-poster-container,
+    .movie-card-compact .movie-poster-container,
+    .movie-card-large .movie-poster-container {
+        height: 280px;
+    }
+
+    .movie-content-global {
+        padding: 14px;
+    }
+}
+
+/* ===== ESTADOS ESPECIAIS ===== */
+
+/* Loading state */
+.movie-card-loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+    .movie-card-loading .movie-poster-container {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: loading-shimmer 1.5s infinite;
+    }
+
+@keyframes loading-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Focus para acessibilidade */
+.movie-card-global:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* Animações de entrada */
+.movie-card-animate-in {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideInUp 0.6s ease forwards;
+}
+
+@keyframes slideInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stagger animation para múltiplos cards */
+.movie-card-animate-in:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.movie-card-animate-in:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.movie-card-animate-in:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.movie-card-animate-in:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+.movie-card-animate-in:nth-child(5) {
+    animation-delay: 0.5s;
+}
+
+.movie-card-animate-in:nth-child(6) {
+    animation-delay: 0.6s;
+}
+
+.movie-card-animate-in:nth-child(7) {
+    animation-delay: 0.7s;
+}
+
+.movie-card-animate-in:nth-child(8) {
+    animation-delay: 0.8s;
+}

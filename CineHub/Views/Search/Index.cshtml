@@ -3,6 +3,8 @@
     ViewData["Title"] = "Pesquisa";
 }
 
+<link rel="stylesheet" href="~/css/shared/movie-card.css" asp-append-version="true" />
+
 <div class="container my-4">
     <!-- Search Header -->
     <div class="row mb-4">
@@ -204,161 +206,148 @@
         <!-- Results Area -->
         <div class="col-lg-9">
             <div class="search-results-container">
-
-    <!-- Search Results -->
-    @if (Model.HasSearched)
-    {
-        <!-- Results Header -->
-        <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <h3>
-                    @if (Model.HasResults)
-                    {
-                        <span class="text-success">
-                            <i class="fas fa-check-circle me-2"></i>
-                            @Model.ResultsCount filme@(Model.ResultsCount != 1 ? "s" : "") encontrado@(Model.ResultsCount != 1 ? "s" : "")
-                        </span>
-                    }
-                    else
-                    {
-                        <span class="text-muted">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Nenhum resultado encontrado
-                        </span>
-                    }
-                </h3>
-            </div>
-        </div>
-
-        <!-- Movies Grid -->
-        @if (Model.HasResults)
-        {
-            <div class="row">
-                @foreach (var movie in Model.Movies)
+                <!-- Search Results -->
+                @if (Model.HasSearched)
                 {
-                    <div class="col-xl-4 col-lg-6 col-md-12 mb-4">
-                        <div class="card h-100 movie-card">
-                            <!-- Movie Poster -->
-                            <div class="position-relative">
-                                @if (!string.IsNullOrEmpty(movie.PosterPath))
+                    <!-- Results Header -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3>
+                                @if (Model.HasResults)
                                 {
-                                    <img src="@Model.ImageBaseUrl@movie.PosterPath" 
-                                         class="card-img-top" 
-                                         alt="@movie.Title"
-                                         style="height: 350px; object-fit: cover;">
+                                    <span class="text-success">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        @Model.ResultsCount filme@(Model.ResultsCount != 1 ? "s" : "") encontrado@(Model.ResultsCount != 1 ? "s" : "")
+                                    </span>
                                 }
                                 else
                                 {
-                                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light" 
-                                         style="height: 350px;">
-                                        <i class="fas fa-film fa-3x text-muted"></i>
-                                    </div>
-                                }
-                                
-                                <!-- Rating Badge -->
-                                <div class="position-absolute top-0 end-0 m-2">
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="fas fa-star me-1"></i>
-                                        @movie.VoteAverage.ToString("F1")
+                                    <span class="text-muted">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Nenhum resultado encontrado
                                     </span>
-                                </div>
-                            </div>
-
-                            <!-- Movie Info -->
-                            <div class="card-body d-flex flex-column">
-                                <h5 class="card-title">@movie.Title</h5>
-                                
-                                @if (movie.ReleaseDate.HasValue)
-                                {
-                                    <p class="card-text text-muted mb-2">
-                                        <i class="fas fa-calendar me-1"></i>
-                                        @movie.ReleaseDate.Value.ToString("yyyy")
-                                    </p>
                                 }
+                            </h3>
+                        </div>
+                    </div>
 
-                                @if (!string.IsNullOrEmpty(movie.Overview))
-                                {
-                                    <p class="card-text flex-grow-1">
-                                        @(movie.Overview.Length > 120 ? movie.Overview.Substring(0, 120) + "..." : movie.Overview)
-                                    </p>
-                                }
-
-                                <!-- Action Button -->
-                                <div class="mt-auto">
-                                    <a asp-controller="Movies" asp-action="Details" asp-route-id="@movie.Id" 
-                                       class="btn btn-primary w-100">
-                                        <i class="fas fa-info-circle me-1"></i>
-                                        Ver Detalhes
-                                    </a>
+                    <!-- Movies Grid usando nosso sistema modular -->
+                    @if (Model.HasResults)
+                    {
+                        <div class="row" id="movies-container">
+                            @foreach (var movie in Model.Movies)
+                            {
+                                <div class="col-xl-4 col-lg-6 col-md-12 mb-4">
+                                    @{
+                                        ViewData["CardSize"] = "standard";
+                                        ViewData["ShowRanking"] = "false";
+                                        ViewData["ImageBaseUrl"] = Model.ImageBaseUrl;
+                                    }
+                                    @await Html.PartialAsync("_MovieCardPartial", movie)
                                 </div>
+                            }
+                        </div>
+
+                        <!-- Paginação -->
+                        @if (Model.TotalPages > 1)
+                        {
+                            <nav aria-label="Navegação de páginas" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    @if (Model.CurrentPage > 1)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" asp-controller="Search" asp-action="Results" 
+                                               asp-route-page="@(Model.CurrentPage - 1)" 
+                                               asp-route-query="@Model.SearchQuery"
+                                               asp-route-minRating="@Model.MinRating"
+                                               asp-route-releaseYear="@Model.ReleaseYear">
+                                                Anterior
+                                            </a>
+                                        </li>
+                                    }
+
+                                    @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                                    {
+                                        <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                            <a class="page-link" asp-controller="Search" asp-action="Results" 
+                                               asp-route-page="@i" 
+                                               asp-route-query="@Model.SearchQuery"
+                                               asp-route-minRating="@Model.MinRating"
+                                               asp-route-releaseYear="@Model.ReleaseYear">
+                                                @i
+                                            </a>
+                                        </li>
+                                    }
+
+                                    @if (Model.CurrentPage < Model.TotalPages)
+                                    {
+                                        <li class="page-item">
+                                            <a class="page-link" asp-controller="Search" asp-action="Results" 
+                                               asp-route-page="@(Model.CurrentPage + 1)" 
+                                               asp-route-query="@Model.SearchQuery"
+                                               asp-route-minRating="@Model.MinRating"
+                                               asp-route-releaseYear="@Model.ReleaseYear">
+                                                Próxima
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </nav>
+                        }
+                    }
+                    else
+                    {
+                        <!-- No Results Message -->
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="fas fa-search fa-5x text-muted"></i>
                             </div>
+                            <h4 class="text-muted mb-3">Nenhum filme encontrado</h4>
+                            <p class="text-muted mb-4">
+                                Tente ajustar seus filtros de pesquisa ou use termos diferentes.
+                            </p>
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                <a asp-controller="Movies" asp-action="Popular" class="btn btn-outline-primary">
+                                    <i class="fas fa-fire me-1"></i>
+                                    Ver Filmes Populares
+                                </a>
+                                <a asp-controller="Search" asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="fas fa-redo me-1"></i>
+                                    Nova Pesquisa
+                                </a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <!-- Welcome Message -->
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-search fa-5x text-muted"></i>
+                        </div>
+                        <h4 class="text-muted mb-3">Pronto para encontrar seu próximo filme favorito?</h4>
+                        <p class="text-muted mb-4">
+                            Use os filtros ao lado para pesquisar por nome, nota mínima ou ano de lançamento.
+                        </p>
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <a asp-controller="Movies" asp-action="Popular" class="btn btn-outline-primary">
+                                <i class="fas fa-fire me-1"></i>
+                                Filmes Populares
+                            </a>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-home me-1"></i>
+                                Início
+                            </a>
                         </div>
                     </div>
                 }
-            </div>
-        }
-        else
-        {
-            <!-- No Results Message -->
-            <div class="text-center py-5">
-                <div class="mb-4">
-                    <i class="fas fa-search fa-5x text-muted"></i>
-                </div>
-                <h4 class="text-muted mb-3">Nenhum filme encontrado</h4>
-                <p class="text-muted mb-4">
-                    Tente ajustar seus filtros de pesquisa ou use termos diferentes.
-                </p>
-                <div class="d-flex flex-wrap justify-content-center gap-2">
-                    <a asp-controller="Movies" asp-action="Popular" class="btn btn-outline-primary">
-                        <i class="fas fa-fire me-1"></i>
-                        Ver Filmes Populares
-                    </a>
-                    <a asp-controller="Search" asp-action="Index" class="btn btn-outline-secondary">
-                        <i class="fas fa-redo me-1"></i>
-                        Nova Pesquisa
-                    </a>
-                </div>
-            </div>
-        }
-    }
-    else
-    {
-        <!-- Welcome Message -->
-        <div class="text-center py-5">
-            <div class="mb-4">
-                <i class="fas fa-search fa-5x text-muted"></i>
-            </div>
-            <h4 class="text-muted mb-3">Pronto para encontrar seu próximo filme favorito?</h4>
-            <p class="text-muted mb-4">
-                Use os filtros ao lado para pesquisar por nome, nota mínima ou ano de lançamento.
-            </p>
-            <div class="d-flex flex-wrap justify-content-center gap-2">
-                <a asp-controller="Movies" asp-action="Popular" class="btn btn-outline-primary">
-                    <i class="fas fa-fire me-1"></i>
-                    Filmes Populares
-                </a>
-                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
-                    <i class="fas fa-home me-1"></i>
-                    Início
-                </a>
-            </div>
-        </div>
-    }
             </div>
         </div>
     </div>
 </div>
 
 <style>
-.movie-card {
-    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-}
-
-.movie-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
 .form-label {
     font-weight: 600;
 }
@@ -377,6 +366,7 @@
     min-height: 400px;
 }
 
+/* Responsividade para mobile - filtros aparecem depois dos resultados */
 @@media (max-width: 991.98px) {
     .col-lg-3 {
         order: 2;
@@ -385,7 +375,39 @@
         order: 1;
     }
 }
+
+/* Melhorias no sidebar de filtros */
+.card-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-group .btn {
+    flex: 1;
+}
+
+/* Estilos para badges de filtros ativos */
+.badge {
+    font-size: 0.8em;
+    padding: 0.5em 0.75em;
+}
+
+/* Animação suave para mudança de filtros */
+#movieFilters, #peopleFilters {
+    transition: opacity 0.3s ease;
+}
+
+/* Melhorias na área de resultados */
+.search-results-container h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.text-success i, .text-muted i {
+    opacity: 0.8;
+}
 </style>
+
+<script src="~/js/shared/movie-card.js" asp-append-version="true"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -398,24 +420,51 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleFilters() {
         if (movieRadio.checked) {
             movieFilters.style.display = 'block';
+            movieFilters.style.opacity = '1';
             peopleFilters.style.display = 'none';
+            peopleFilters.style.opacity = '0';
         } else {
             movieFilters.style.display = 'none';
+            movieFilters.style.opacity = '0';
             peopleFilters.style.display = 'block';
+            peopleFilters.style.opacity = '1';
         }
     }
     
     movieRadio.addEventListener('change', toggleFilters);
     peopleRadio.addEventListener('change', toggleFilters);
     
-    // Auto-submit form when filters change (optional)
+    // Auto-submit form when filters change (opcional)
     const form = document.getElementById('searchForm');
     const autoSubmitElements = form.querySelectorAll('select, input[type="number"]');
     
     autoSubmitElements.forEach(element => {
         element.addEventListener('change', function() {
-            // Uncomment below line if you want auto-submit on filter change
+            // Descomente a linha abaixo se quiser auto-submit ao mudar filtros
             // form.submit();
+        });
+    });
+
+    // Melhorar UX do formulário
+    const queryInput = document.getElementById('query');
+    if (queryInput) {
+        queryInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                form.submit();
+            }
+        });
+    }
+
+    // Feedback visual para filtros ativos
+    const filterInputs = form.querySelectorAll('input, select');
+    filterInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            // Adicionar classe visual para indicar filtro ativo
+            if (this.value) {
+                this.classList.add('filter-active');
+            } else {
+                this.classList.remove('filter-active');
+            }
         });
     });
 });

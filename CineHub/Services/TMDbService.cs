@@ -114,5 +114,128 @@ namespace CineHub.Services
 
             return new List<MovieDTO>();
         }
+
+
+        // Busca filmes por ano específico usando discover endpoint
+        public async Task<List<MovieDTO>> GetMoviesByYearAsync(int year, int page = 1)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(
+                    $"{_baseUrl}/discover/movie?api_key={_apiKey}&primary_release_year={year}&page={page}&language=pt-BR&sort_by=popularity.desc"
+                );
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<TMDbResponse>(json);
+                    return result?.Results ?? new List<MovieDTO>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao buscar filmes por ano: {ex.Message}");
+            }
+
+            return new List<MovieDTO>();
+        }
+
+        // Busca filmes por nota mínima usando discover endpoint
+        public async Task<List<MovieDTO>> GetMoviesByMinRatingAsync(double minRating, int page = 1)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(
+                    $"{_baseUrl}/discover/movie?api_key={_apiKey}&vote_average.gte={minRating}&page={page}&language=pt-BR&sort_by=popularity.desc&vote_count.gte=100"
+                );
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<TMDbResponse>(json);
+                    return result?.Results ?? new List<MovieDTO>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao buscar filmes por nota: {ex.Message}");
+            }
+
+            return new List<MovieDTO>();
+        }
+
+        // Busca avançada combinando múltiplos filtros usando discover endpoint
+        public async Task<List<MovieDTO>> DiscoverMoviesAsync(int? year = null, double? minRating = null, int page = 1)
+        {
+            try
+            {
+                var queryParams = new List<string>
+                {
+                    $"api_key={_apiKey}",
+                    $"page={page}",
+                    "language=pt-BR",
+                    "sort_by=popularity.desc"
+                };
+
+                if (year.HasValue)
+                {
+                    queryParams.Add($"primary_release_year={year.Value}");
+                }
+
+                if (minRating.HasValue)
+                {
+                    queryParams.Add($"vote_average.gte={minRating.Value}");
+                    queryParams.Add("vote_count.gte=50");
+                }
+
+                var queryString = string.Join("&", queryParams);
+                var response = await _httpClient.GetAsync($"{_baseUrl}/discover/movie?{queryString}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<TMDbResponse>(json);
+                    return result?.Results ?? new List<MovieDTO>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao fazer discover de filmes: {ex.Message}");
+            }
+
+            return new List<MovieDTO>();
+        }
+
+        // Busca combinada: query + filtros
+        public async Task<List<MovieDTO>> SearchMoviesWithFiltersAsync(string? query = null, int? year = null, double? minRating = null, int page = 1)
+        {
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                var searchResults = await SearchMoviesAsync(query, page);
+
+                var filteredResults = searchResults.AsEnumerable();
+
+                if (year.HasValue)
+                {
+                    filteredResults = filteredResults.Where(m =>
+                    {
+                        if (DateTime.TryParse(m.ReleaseDate, out var date))
+                        {
+                            return date.Year == year.Value;
+                        }
+                        return false;
+                    });
+                }
+
+                if (minRating.HasValue)
+                {
+                    filteredResults = filteredResults.Where(m => m.VoteAverage >= minRating.Value);
+                }
+
+                return filteredResults.ToList();
+            }
+
+            return await DiscoverMoviesAsync(year, minRating, page);
+        }
     }
 }

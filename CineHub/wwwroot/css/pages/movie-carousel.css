@@ -167,19 +167,6 @@
     gap: 0.25rem;
 }
 
-/* Short movie overview text */
-.movie-overview-carousel {
-    color: #666;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    margin: 0 0 1rem 0;
-    height: 3rem;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-}
-
 /* Button to view more details */
 .movie-btn-carousel {
     width: 100%;

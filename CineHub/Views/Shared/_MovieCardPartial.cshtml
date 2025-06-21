@@ -1,0 +1,52 @@
+﻿@model Movie
+@{
+    // Parâmetros configuráveis
+    var cardSize = ViewData["CardSize"]?.ToString() ?? "standard";
+    var showRanking = ViewData["ShowRanking"]?.ToString() == "true";
+    var ranking = ViewData["Ranking"]?.ToString();
+    var imageBaseUrl = ViewData["ImageBaseUrl"]?.ToString() ?? "";
+}
+
+<div class="movie-card-global movie-card-@cardSize" data-movie-id="@Model.Id">
+    <div class="movie-poster-container">
+        @if (!string.IsNullOrEmpty(Model.PosterPath))
+        {
+            <img src="@(imageBaseUrl)@Model.PosterPath"
+                 alt="@Model.Title"
+                 class="movie-poster-global"
+                 loading="lazy">
+        }
+        else
+        {
+            <div class="movie-poster-placeholder-global">
+                🎬
+            </div>
+        }
+
+        @if (showRanking && !string.IsNullOrEmpty(ranking))
+        {
+            <div class="movie-ranking-badge">#@ranking</div>
+        }
+
+    </div>
+
+    <div class="movie-content-global">
+        <h3 class="movie-title-global">@Model.Title</h3>
+
+        <div class="movie-meta-global">
+            @if (Model.ReleaseDate.HasValue)
+            {
+                <span class="movie-year-global">📅 @Model.ReleaseDate.Value.Year</span>
+            }
+
+            @if (Model.VoteAverage > 0)
+            {
+                <span class="movie-rating-global">⭐ @Model.VoteAverage.ToString("F1")</span>
+            }
+        </div>
+        <a asp-controller="Movies" asp-action="Details" asp-route-id="@Model.Id"
+           class="movie-btn-global">
+            Ver Detalhes
+        </a>
+    </div>
+</div>

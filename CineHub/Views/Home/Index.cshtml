@@ -52,10 +52,6 @@
                                 }
                             </div>
 
-                            <p class="card-text flex-grow-1">
-                                @(movie.Overview.Length > 100 ? movie.Overview.Substring(0, 100) + "..." : movie.Overview)
-                            </p>
-
                             <div class="mt-auto">
                                 <a asp-controller="Movies" asp-action="Details" asp-route-id="@movie.Id"
                                    class="btn btn-primary btn-sm w-100">
@@ -132,10 +128,6 @@ else
                                         </div>
                                     }
                                 </div>
-
-                                <p class="movie-overview-carousel">
-                                    @(movie.Overview.Length > 80 ? movie.Overview.Substring(0, 80) + "..." : movie.Overview)
-                                </p>
 
                                 <a asp-controller="Movies" asp-action="Details" asp-route-id="@movie.Id"
                                    class="movie-btn-carousel">
@@ -214,10 +206,6 @@ else
                                         </div>
                                     }
                                 </div>
-
-                                <p class="movie-overview-carousel">
-                                    @(movie.movie.Overview.Length > 80 ? movie.movie.Overview.Substring(0, 80) + "..." : movie.movie.Overview)
-                                </p>
 
                                 <a asp-controller="Movies" asp-action="Details" asp-route-id="@movie.movie.Id"
                                    class="movie-btn-carousel">
