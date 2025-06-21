@@ -1,6 +1,3 @@
-// ===== TOAST-SYSTEM.JS =====
-// Toast notification system - CineHub
-
 // Toast system namespace
 window.ToastSystem = {
     // Cache and state

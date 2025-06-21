@@ -10,7 +10,7 @@ class MovieCarousel {
         this.currentPage = 0;
         this.totalPages = Math.ceil(this.items.length / this.itemsPerPage);
 
-        // Propriedades para controle de layout - CORRIGIDAS
+        // Properties for layout control
         this.cardWidth = 280;
         this.cardGap = 24;
         this.carouselPadding = 64;
@@ -45,7 +45,7 @@ class MovieCarousel {
         const containerRect = this.container.getBoundingClientRect();
         const availableWidth = containerRect.width - this.carouselPadding;
 
-        // Definir tamanhos de card responsivos - CORRIGIDO
+        // Set responsive card sizes
         let currentCardWidth = this.cardWidth;
 
         if (window.innerWidth <= 480) {
@@ -62,10 +62,10 @@ class MovieCarousel {
             this.cardWidth = 280;
         }
 
-        // Calculate how many items can fit based on screen width
+        // Calculate how many items fit based on screen width
         const maxItemsBasedOnWidth = Math.floor(availableWidth / (currentCardWidth + this.cardGap));
 
-        // Set responsive itemsPerPage based on screen width with maximum constraint
+        // Set responsive itemsPerPage based on screen width with max constraint
         if (window.innerWidth <= 480) {
             this.itemsPerPage = Math.max(1, Math.min(1, maxItemsBasedOnWidth));
         } else if (window.innerWidth <= 768) {
@@ -89,11 +89,11 @@ class MovieCarousel {
             this.currentPage = Math.max(0, this.totalPages - 1);
         }
 
-        // Set the track width to accommodate all items - CORRIGIDO
+        // Set the track width to fit all items
         const totalTrackWidth = this.items.length * (currentCardWidth + this.cardGap) - this.cardGap;
         this.track.style.width = `${totalTrackWidth}px`;
 
-        // Aplicar largura consistente aos cards - NOVO
+        // Apply consistent width to the cards
         this.items.forEach(item => {
             item.style.width = `${currentCardWidth}px`;
             item.style.minWidth = `${currentCardWidth}px`;
@@ -123,7 +123,7 @@ class MovieCarousel {
     }
 
     updateTransform() {
-        // Calculate translation based on current page and items per page - CORRIGIDO
+        // Calculate translation based on current page and items per page
         const itemsToMove = this.currentPage * this.itemsPerPage;
         const translateX = itemsToMove * (this.cardWidth + this.cardGap);
 
@@ -131,17 +131,17 @@ class MovieCarousel {
     }
 
     updateButtons() {
-        // Check if we're at the first page
+        // Check if we are on the first page
         const isFirstPage = this.currentPage === 0;
 
-        // Check if we're at the last page or if remaining items fit in current view
+        // Check if we are on the last page or if remaining items fit into current view
         const remainingItems = this.items.length - (this.currentPage * this.itemsPerPage);
         const isLastPage = this.currentPage >= this.totalPages - 1 || remainingItems <= this.itemsPerPage;
 
         this.prevBtn.disabled = isFirstPage;
         this.nextBtn.disabled = isLastPage;
 
-        // Hide buttons if there aren't enough items to paginate
+        // Hide buttons if there are not enough items to paginate
         const showControls = this.items.length > this.itemsPerPage;
         this.prevBtn.style.display = showControls ? 'flex' : 'none';
         this.nextBtn.style.display = showControls ? 'flex' : 'none';
@@ -209,7 +209,7 @@ class MovieCarousel {
         this.updateLayout();
     }
 
-    // Method to go to specific page
+    // Method to go to a specific page
     goToPage(pageIndex) {
         if (pageIndex >= 0 && pageIndex < this.totalPages) {
             this.currentPage = pageIndex;
@@ -219,7 +219,7 @@ class MovieCarousel {
     }
 }
 
-// Initialize carousels when the DOM is ready
+// Initialize all carousels on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function () {
     // Initialize all carousels on the page
     const carouselContainers = document.querySelectorAll('.movie-carousel-container');
@@ -240,18 +240,4 @@ function truncateText(text, maxLength) {
 // Export for module use if needed
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = MovieCarousel;
-}
-
-const allCards = Array.from(this.items);
-if (allCards.length > 0) {
-    // Reset heights first
-    allCards.forEach(card => card.style.height = 'auto');
-
-    // Get the tallest card height
-    const maxHeight = Math.max(...allCards.map(card => card.offsetHeight));
-
-    // Apply the same height to all cards
-    allCards.forEach(card => {
-        card.style.height = `${maxHeight}px`;
-    });
 }

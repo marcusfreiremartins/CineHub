@@ -1,13 +1,13 @@
-// Namespace para o sistema de avaliação
+// Namespace for the rating system
 window.RatingSystem = {
-    // Cache dos elementos
+    // Cache of elements
     cache: {
         badges: null,
         container: null,
         currentRating: 0
     },
 
-    // Configurações específicas do rating (complementa APP_CONFIG)
+    // Rating-specific configurations (complements APP_CONFIG)
     config: {
         SELECTORS: {
             BADGES: '.rating-badge',
@@ -24,15 +24,13 @@ window.RatingSystem = {
         }
     },
 
-    /**
-     * Inicializa o sistema de avaliação
-     */
+    // Initializes the rating system
     init() {
         try {
             this.cacheElements();
 
             if (!this.validateElements()) {
-                console.warn('RatingSystem: Elementos necessários não encontrados');
+                console.warn('RatingSystem: Required elements not found');
                 return false;
             }
 
@@ -40,41 +38,33 @@ window.RatingSystem = {
             this.bindEvents();
             this.highlightBadges(this.cache.currentRating);
 
-            console.log('RatingSystem: Inicializado com sucesso');
+            console.log('RatingSystem: Initialized successfully');
             return true;
         } catch (error) {
-            console.error('RatingSystem: Erro na inicialização:', error);
+            console.error('RatingSystem: Initialization error:', error);
             return false;
         }
     },
 
-    /**
-     * Armazena referências dos elementos em cache
-     */
+    // Cache element references
     cacheElements() {
         this.cache.container = document.querySelector(this.config.SELECTORS.CONTAINER);
         this.cache.badges = document.querySelectorAll(this.config.SELECTORS.BADGES);
     },
 
-    /**
-     * Valida se os elementos necessários existem
-     */
+    // Validates required elements existence
     validateElements() {
         return this.cache.container && this.cache.badges.length > 0;
     },
 
-    /**
-     * Obtém a avaliação atual do data attribute
-     */
+    // Retrieves current rating from data attribute
     getCurrentRating() {
         const ratingAttr = this.cache.container.getAttribute(this.config.ATTRIBUTES.CURRENT_RATING);
         this.cache.currentRating = parseInt(ratingAttr) || 0;
     },
 
-    /**
-     * Destaca badges baseado na avaliação fornecida
-     * @param {number} rating - Número da avaliação (1-5)
-     */
+    // Highlights badges based on given rating
+    // @param {number} rating - Rating number (1-5)
     highlightBadges(rating) {
         if (!this.cache.badges) return;
 
@@ -82,10 +72,10 @@ window.RatingSystem = {
             const badge = badgeLabel.querySelector(this.config.SELECTORS.BADGE_ELEMENT);
             if (!badge) return;
 
-            // Remove classes anteriores
+            // Remove previous classes
             badge.classList.remove(this.config.CLASSES.PRIMARY, this.config.CLASSES.SECONDARY);
 
-            // Adiciona classe baseada na posição
+            // Add class based on position
             if (index < rating) {
                 badge.classList.add(this.config.CLASSES.PRIMARY);
             } else {
@@ -94,81 +84,69 @@ window.RatingSystem = {
         });
     },
 
-    /**
-     * Vincula eventos aos elementos
-     */
+    // Binds events to elements
     bindEvents() {
         this.bindBadgeEvents();
         this.bindContainerEvents();
     },
 
-    /**
-     * Vincula eventos individuais dos badges
-     */
+    // Binds individual badge events
     bindBadgeEvents() {
         this.cache.badges.forEach((badgeLabel, index) => {
-            // Evento de hover - destaca badges até o hovereado
+            // Hover event - highlights badges up to hovered one
             badgeLabel.addEventListener('mouseenter', () => {
                 this.highlightBadges(index + 1);
             });
 
-            // Evento de click - seleciona a avaliação
+            // Click event - selects the rating
             badgeLabel.addEventListener('click', (e) => {
                 this.handleBadgeClick(badgeLabel, index);
             });
 
-            // Adiciona suporte a teclado para acessibilidade
+            // Add keyboard support for accessibility
             if (window.AccessibilityUtils) {
                 window.AccessibilityUtils.addKeyboardNavigation(badgeLabel, () => {
                     this.handleBadgeClick(badgeLabel, index);
                 });
             }
 
-            // Adiciona atributos de acessibilidade
+            // Add accessibility attributes
             this.enhanceAccessibility(badgeLabel, index);
         });
     },
 
-    /**
-     * Vincula eventos do container
-     */
+    // Binds container events
     bindContainerEvents() {
-        // Restaura estado quando o mouse sai do container
+        // Restore state when mouse leaves the container
         this.cache.container.addEventListener('mouseleave', () => {
             this.restoreOriginalState();
         });
     },
 
-    /**
-     * Manipula o click em um badge
-     * @param {Element} badgeLabel - Elemento do badge clicado
-     * @param {number} index - Índice do badge
-     */
+    // Handles click on a badge
+    // @param {Element} badgeLabel - Clicked badge element
+    // @param {number} index - Badge index
     handleBadgeClick(badgeLabel, index) {
         const input = badgeLabel.querySelector('input');
         if (input) {
             input.checked = true;
             this.highlightBadges(index + 1);
 
-            // Dispara evento customizado para outras partes da aplicação
+            // Dispatch custom event for other app parts
             this.dispatchRatingChangeEvent(index + 1);
         }
     },
 
-    /**
-     * Restaura o estado original baseado na seleção atual
-     */
+    // Restores original state based on current selection
     restoreOriginalState() {
         const checkedInput = document.querySelector(`${this.config.SELECTORS.RATING_INPUT}:checked`);
         const checkedValue = checkedInput ? parseInt(checkedInput.value) : this.cache.currentRating;
         this.highlightBadges(checkedValue);
     },
 
-    /**
-     * Melhora a acessibilidade dos badges
-     * @param {Element} badgeLabel - Elemento do badge
-     * @param {number} index - Índice do badge
-     */
+    // Enhances accessibility of badges
+    // @param {Element} badgeLabel - Badge element
+    // @param {number} index - Badge index
     enhanceAccessibility(badgeLabel, index) {
         const rating = index + 1;
         badgeLabel.setAttribute('role', 'button');
@@ -177,10 +155,8 @@ window.RatingSystem = {
         badgeLabel.setAttribute('title', `${rating} estrela${rating > 1 ? 's' : ''}`);
     },
 
-    /**
-     * Dispara evento customizado quando a avaliação muda
-     * @param {number} rating - Nova avaliação
-     */
+    // Dispatches custom event when rating changes
+    // @param {number} rating - New rating
     dispatchRatingChangeEvent(rating) {
         const event = new CustomEvent('ratingChanged', {
             detail: {
@@ -193,13 +169,11 @@ window.RatingSystem = {
         this.cache.container.dispatchEvent(event);
     },
 
-    /**
-     * Define programaticamente uma avaliação
-     * @param {number} rating - Avaliação a ser definida
-     */
+    // Programmatically sets a rating
+    // @param {number} rating - Rating to set
     setRating(rating) {
         if (rating < 1 || rating > 5) {
-            console.warn('RatingSystem: Avaliação deve estar entre 1 e 5');
+            console.warn('RatingSystem: Rating must be between 1 and 5');
             return false;
         }
 
@@ -212,30 +186,24 @@ window.RatingSystem = {
         return false;
     },
 
-    /**
-     * Obtém a avaliação atual selecionada
-     * @returns {number} Avaliação atual
-     */
+    // Gets the current selected rating
+    // @returns {number} Current rating
     getCurrentSelectedRating() {
         const checkedInput = document.querySelector(`${this.config.SELECTORS.RATING_INPUT}:checked`);
         return checkedInput ? parseInt(checkedInput.value) : 0;
     },
 
-    /**
-     * Reseta o sistema de avaliação
-     */
+    // Resets the rating system
     reset() {
-        // Limpa seleções
+        // Clear selections
         const inputs = document.querySelectorAll(this.config.SELECTORS.RATING_INPUT);
         inputs.forEach(input => input.checked = false);
 
-        // Restaura estado original
+        // Restore original state
         this.highlightBadges(this.cache.currentRating);
     },
 
-    /**
-     * Destroi o sistema de avaliação (remove eventos)
-     */
+    // Destroys the rating system (removes events)
     destroy() {
         if (this.cache.badges) {
             this.cache.badges.forEach(badge => {
@@ -251,9 +219,9 @@ window.RatingSystem = {
     }
 };
 
-// Auto-inicialização quando o DOM estiver pronto
+// Auto-initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function () {
-    // Inicializa apenas se os elementos existirem
+    // Initialize only if elements exist
     const ratingContainer = document.querySelector('.rating-container');
     if (ratingContainer) {
         window.RatingSystem.init();

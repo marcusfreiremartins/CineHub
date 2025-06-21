@@ -3,7 +3,7 @@
 // Function to confirm deletion of a rating
 function confirmDeleteRating(movieId, movieTitle) {
     if (!movieId || !movieTitle) {
-        console.error('movieId ou movieTitle não fornecidos');
+        console.error('movieId or movieTitle not provided');
         return;
     }
 
@@ -78,30 +78,30 @@ function showEmptyState() {
 
 // Function to delete a rating using fetch
 async function deleteRating(movieId) {
-    console.log('deleteRating chamado com movieId:', movieId);
+    console.log('deleteRating called with movieId:', movieId);
 
     if (!movieId) {
-        console.error('movieId não fornecido para deleteRating');
+        console.error('movieId not provided for deleteRating');
         return;
     }
 
     try {
-        console.log('Fazendo requisição para:', APP_CONFIG.API_ENDPOINTS.DELETE_RATING);
+        console.log('Making request to:', APP_CONFIG.API.ENDPOINTS.DELETE_RATING);
 
-        const result = await makePostRequest(APP_CONFIG.API_ENDPOINTS.DELETE_RATING, { movieId });
+        const result = await makePostRequest(APP_CONFIG.API.ENDPOINTS.DELETE_RATING, { movieId });
 
-        console.log('Resultado da requisição:', result);
+        console.log('Request result:', result);
 
         if (result && result.success) {
             showToast(result.message || 'Avaliação deletada com sucesso!', 'success');
             removeRatingCard(movieId); // Remove the card from the DOM
         } else {
             const errorMessage = result?.message || 'Erro ao deletar avaliação';
-            console.log('Erro na resposta:', errorMessage);
+            console.log('Error in response:', errorMessage);
             showToast(errorMessage, 'error');
         }
     } catch (error) {
-        console.error('Erro no deleteRating:', error);
+        console.error('Error in deleteRating:', error);
         showToast('Erro ao deletar avaliação. Tente novamente.', 'error');
     }
 }
@@ -113,8 +113,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (confirmDeleteBtn) {
         confirmDeleteBtn.addEventListener('click', async function () {
             if (!movieIdToDelete) {
-                console.error('movieIdToDelete não definido');
-                showToast('Erro interno: ID do filme não encontrado', 'error');
+                console.error('movieIdToDelete not defined');
+                showToast('Erro interno: ID do filme não encontrado', 'error'); 
                 return;
             }
 
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
             try {
                 await deleteRating(movieIdToDelete);
             } catch (error) {
-                console.error('Erro ao deletar avaliação:', error);
+                console.error('Error deleting rating:', error);
                 showToast('Erro ao deletar avaliação. Tente novamente.', 'error');
             } finally {
                 movieIdToDelete = null;
