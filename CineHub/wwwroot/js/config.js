@@ -1,4 +1,4 @@
-// Configuration object for app settings, API endpoints, and selectors
+Ôªø// Configuration object for app settings, API endpoints, and selectors
 const APP_CONFIG = {
     // Durations and timing
     TIMING: {
@@ -11,7 +11,6 @@ const APP_CONFIG = {
         WELCOME_DELAY: 500,
         SCROLL_THROTTLE: 10
     },
-
     // API endpoints
     API: {
         ENDPOINTS: {
@@ -25,12 +24,10 @@ const APP_CONFIG = {
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
         }
     },
-
     // API endpoints (legacy compatibility)
     API_ENDPOINTS: {
         MOVIE_DETAILS: '/Movies/Details'
     },
-
     // CSS selectors
     SELECTORS: {
         // Containers and structure
@@ -38,56 +35,52 @@ const APP_CONFIG = {
         TOAST_CONTAINER: '#toast-container',
         COMMENTS_CONTAINER: '#comments-container',
         PAGINATION_CONTAINER: '.pagination',
-
         // Movie elements
         MOVIE_CARD: '.col-lg-3, .col-md-4, .col-sm-6',
         MOVIE_CARD_GLOBAL: '.movie-card-global',
         MOVIE_POSTER_GLOBAL: '.movie-poster-global',
         MOVIE_POSTER_PLACEHOLDER: '.movie-poster-placeholder-global',
         MOVIE_BTN_GLOBAL: '.movie-btn-global',
-
         // Interaction elements
         PAGINATION_LINKS: '.pagination .page-link',
         RATING_STARS: '.rating-stars',
         BADGES: '.badge',
         COUNTER: '.favorite-counter',
-
         // Comment elements
         COMMENTS_HEADER: '.card-header h4',
         COMMENT_ITEM: '.comment-item',
         COMMENT_TEXT: '.comment-text'
     },
-
     // Limits and settings
     LIMITS: {
         COMMENT_PREVIEW_LENGTH: 300,
         NAVBAR_HIDE_THRESHOLD: 100
     },
-
     // Error messages
     ERROR_MESSAGES: {
-        NETWORK_ERROR: 'Erro de conex„o. Verifique sua internet.',
-        NOT_FOUND: 'P·gina n„o encontrada',
+        NETWORK_ERROR: 'Erro de conex√£o. Verifique sua internet.',
+        NOT_FOUND: 'P√°gina n√£o encontrada',
         SERVER_ERROR: 'Erro interno do servidor',
-        GENERIC_ERROR: 'Erro ao carregar coment·rios',
-        CONTAINER_NOT_FOUND: 'Container de coment·rios n„o encontrado',
-        MOVIE_ID_NOT_FOUND: 'ID do filme n„o encontrado na URL',
-        INITIALIZATION_ERROR: 'Erro ao inicializar a p·gina',
+        GENERIC_ERROR: 'Erro ao carregar coment√°rios',
+        CONTAINER_NOT_FOUND: 'Container de coment√°rios n√£o encontrado',
+        MOVIE_ID_NOT_FOUND: 'ID do filme n√£o encontrado na URL',
+        INITIALIZATION_ERROR: 'Erro ao inicializar a p√°gina',
         EMPTY_RESPONSE: 'Resposta vazia do servidor',
         PARSE_ERROR: 'Erro ao processar resposta do servidor',
-        COMMENTS_SECTION_NOT_FOUND: 'SeÁ„o de coment·rios n„o encontrada na resposta'
+        COMMENTS_SECTION_NOT_FOUND: 'Se√ß√£o de coment√°rios n√£o encontrada na resposta'
     },
-
     // Security settings
     SECURITY: {
         DANGEROUS_ELEMENTS: ['script', 'iframe', 'object', 'embed', 'form'],
         DANGEROUS_ATTRIBUTES: ['onclick', 'onload', 'onerror', 'onmouseover', 'onfocus', 'onblur'],
         CLASSES_TO_REMOVE: ['initial-load']
     },
-
     // Animation settings
     ANIMATION: {
         INTERSECTION_THRESHOLD: 0.1,
         INTERSECTION_ROOT_MARGIN: '50px'
     }
 };
+
+// Make this config object available globally
+window.APP_CONFIG = APP_CONFIG;

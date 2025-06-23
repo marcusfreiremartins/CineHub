@@ -1,6 +1,4 @@
-﻿// site.js - Main site functionality
-
-document.addEventListener('DOMContentLoaded', function () {
+﻿document.addEventListener('DOMContentLoaded', function () {
     // Check if the toast container exists, create it if not
     if (!document.getElementById('toast-container')) {
         const toastContainer = document.createElement('div');
@@ -72,7 +70,6 @@ function initializeNavbar() {
 
 // Initialize accessibility features
 function initializeAccessibility() {
-    // AccessibilityUtils is now defined in utils.js, so we can use it directly
     if (typeof AccessibilityUtils !== 'undefined') {
         AccessibilityUtils.enhanceRatingElements();
         AccessibilityUtils.addTooltips();

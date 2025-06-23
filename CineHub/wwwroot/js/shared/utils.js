@@ -290,7 +290,7 @@ const UITemplates = {
     }
 };
 
-// Enhanced accessibility utilities
+// Accessibility utilities
 const AccessibilityUtils = {
     enhanceRatingElements: function () {
         const ratingElements = document.querySelectorAll('.rating-stars');
