@@ -7,8 +7,19 @@ namespace CineHub.Models.ViewModels.Movies
         public List<Movie> PopularMovies { get; set; } = new();
         public List<Movie> TopRatedMovies { get; set; } = new();
         public List<Movie> Movies { get; set; } = new();
-        public int CurrentPage { get; set; } = 1;
-        public int TotalPages { get; set; } = 1;
         public string Search { get; set; } = string.Empty;
+
+        // Method to facilitate the creation of the ViewModel from the PaginatedResult
+        public static MovieIndexViewModel FromPaginatedResult(PaginatedResult<Movie> paginatedResult, string search = "")
+        {
+            var viewModel = new MovieIndexViewModel
+            {
+                Movies = paginatedResult.Items,
+                Search = search
+            };
+
+            viewModel.SetPaginationProperties(paginatedResult);
+            return viewModel;
+        }
     }
 }

@@ -1,16 +1,17 @@
 ﻿using CineHub.Models.ViewModels.Base;
+
 namespace CineHub.Models.ViewModels.Movies
 {
     public class MovieCommentsViewModel : BaseViewModel
     {
         public List<MovieCommentItemViewModel> Comments { get; set; } = new();
-        public int CurrentPage { get; set; } = 1;
-        public int TotalPages { get; set; }
         public int TotalComments { get; set; }
-        public bool HasNextPage => CurrentPage < TotalPages;
-        public bool HasPreviousPage => CurrentPage > 1;
         public int MovieId { get; set; }
         public string MovieTitle { get; set; } = string.Empty;
+
+        // Properties calculated using those from BaseViewModel
+        public bool HasNextPageComments => HasNextPage;
+        public bool HasPreviousPageComments => HasPreviousPage;
     }
 
     public class MovieCommentItemViewModel
@@ -25,6 +26,7 @@ namespace CineHub.Models.ViewModels.Movies
         public string FormattedUpdatedDate => UpdatedAt?.ToString("dd/MM/yyyy") ?? "";
         public bool WasUpdated => UpdatedAt.HasValue;
         public string RatingDisplay => GetNumericRating(Rating);
+
         private string GetNumericRating(int rating)
         {
             return $"{rating}/10";

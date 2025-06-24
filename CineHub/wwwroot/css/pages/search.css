@@ -1,0 +1,22 @@
+﻿/* Estilos específicos para a página de pesquisa e seus filtros */
+
+.form-label {
+    font-weight: 600;
+}
+
+.btn-check:checked + .btn-outline-primary {
+    color: #fff;
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Reordena o layout em telas menores para melhor usabilidade mobile */
+@media (max-width: 991.98px) {
+    .filters-sidebar {
+        order: 2; /* Filtros aparecem depois dos resultados */
+    }
+
+    .results-area {
+        order: 1; /* Resultados aparecem primeiro */
+    }
+}

@@ -23,45 +23,83 @@ namespace CineHub.Controllers
             _imageSettings = imageSettings.Value;
         }
 
-        // Displays a list of movies, with optional search and pagination
+        // Displays a list of popular movies with pagination
         public async Task<IActionResult> Popular(string search = "", int page = 1)
         {
+            if (page < 1) page = 1;
+
             try
             {
-                List<Movie> movies;
+                PaginatedResult<Movie> paginatedResult;
 
                 if (string.IsNullOrWhiteSpace(search))
                 {
-                    movies = await _movieService.GetPopularMoviesAsync(page);
+                    paginatedResult = await _movieService.GetPopularMoviesAsync(page);
                 }
                 else
                 {
-                    movies = await _movieService.SearchMoviesAsync(search, page);
+                    paginatedResult = await _movieService.SearchMoviesAsync(search, page);
 
-                    if (!movies.Any())
+                    if (!paginatedResult.Items.Any() && paginatedResult.CurrentPage == 1)
                     {
                         TempData["Info"] = $"Nenhum filme encontrado para '{search}'. Experimente outros termos! 🎭";
                     }
                 }
 
-                var viewModel = new MovieIndexViewModel
-                {
-                    Movies = movies,
-                    Search = search,
-                    CurrentPage = page,
-                    ImageBaseUrl = _imageSettings.BaseUrl
-                };
+                var viewModel = MovieIndexViewModel.FromPaginatedResult(paginatedResult, search);
+                viewModel.ImageBaseUrl = _imageSettings.BaseUrl;
 
                 return View(viewModel);
             }
             catch (Exception)
             {
                 TempData["Error"] = "Erro ao carregar filmes. Tente novamente mais tarde.";
-                return View(new MovieIndexViewModel
+
+                var emptyResult = new PaginatedResult<Movie>(new List<Movie>(), 0, page, 20);
+                var viewModel = MovieIndexViewModel.FromPaginatedResult(emptyResult, search);
+                viewModel.ImageBaseUrl = _imageSettings.BaseUrl;
+
+                return View(viewModel);
+            }
+        }
+
+        // Displays a list of top rated movies with pagination
+        public async Task<IActionResult> TopRated(string search = "", int page = 1)
+        {
+            if (page < 1) page = 1;
+
+            try
+            {
+                PaginatedResult<Movie> paginatedResult;
+
+                if (string.IsNullOrWhiteSpace(search))
                 {
-                    Movies = new List<Movie>(),
-                    ImageBaseUrl = _imageSettings.BaseUrl
-                });
+                    paginatedResult = await _movieService.GetTopRatedMoviesAsync(page);
+                }
+                else
+                {
+                    paginatedResult = await _movieService.SearchMoviesAsync(search, page);
+
+                    if (!paginatedResult.Items.Any() && paginatedResult.CurrentPage == 1)
+                    {
+                        TempData["Info"] = $"Nenhum filme encontrado para '{search}'. Experimente outros termos! 🎭";
+                    }
+                }
+
+                var viewModel = MovieIndexViewModel.FromPaginatedResult(paginatedResult, search);
+                viewModel.ImageBaseUrl = _imageSettings.BaseUrl;
+
+                return View(viewModel);
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Erro ao carregar filmes mais bem avaliados. Tente novamente mais tarde.";
+
+                var emptyResult = new PaginatedResult<Movie>(new List<Movie>(), 0, page, 20);
+                var viewModel = MovieIndexViewModel.FromPaginatedResult(emptyResult, search);
+                viewModel.ImageBaseUrl = _imageSettings.BaseUrl;
+
+                return View(viewModel);
             }
         }
 
@@ -77,7 +115,7 @@ namespace CineHub.Controllers
                 if (movie == null)
                 {
                     TempData["Error"] = "Filme não encontrado!";
-                    return RedirectToAction("Index");
+                    return RedirectToAction("Popular");
                 }
 
                 var (comments, totalComments) = await _ratingService.GetMovieCommentsAsync(id, page, pageSize);
@@ -117,7 +155,7 @@ namespace CineHub.Controllers
             catch (Exception)
             {
                 TempData["Error"] = "Erro ao carregar detalhes do filme. Tente novamente mais tarde.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Popular");
             }
         }
     }

@@ -9,6 +9,7 @@ namespace CineHub.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly TMDbService _tmdbService;
+        private const int DefaultPageSize = 20;
 
         public MovieService(ApplicationDbContext context, TMDbService tmdbService)
         {
@@ -16,8 +17,8 @@ namespace CineHub.Services
             _tmdbService = tmdbService;
         }
 
-        // Retrieves popular movies. First tries TMDb API; falls back to local DB if the API is unavailable
-        public async Task<List<Movie>> GetPopularMoviesAsync(int page = 1)
+        // Retrieves popular movies with pagination
+        public async Task<PaginatedResult<Movie>> GetPopularMoviesAsync(int page = 1, int pageSize = DefaultPageSize)
         {
             try
             {
@@ -36,7 +37,8 @@ namespace CineHub.Services
                         }
                     }
 
-                    return movies;
+                    int estimatedTotal = Math.Min(page * pageSize + (moviesFromApi.Count == pageSize ? pageSize : 0), 10000);
+                    return new PaginatedResult<Movie>(movies, estimatedTotal, page, pageSize);
                 }
             }
             catch (Exception ex)
@@ -44,8 +46,14 @@ namespace CineHub.Services
                 Console.WriteLine($"API unavailable; falling back to local DB: {ex.Message}");
             }
 
-            // Fallback: Fetch popular movies from local DB
-            return await GetPopularMoviesFromDatabaseAsync(page);
+            return await GetPopularMoviesFromDatabaseAsync(page, pageSize);
+        }
+
+        // Method to fetch popular movies without pagination (for Home)
+        public async Task<List<Movie>> GetPopularMoviesAsync()
+        {
+            var result = await GetPopularMoviesAsync(1, DefaultPageSize);
+            return result.Items;
         }
 
         // Retrieves a movie by its local DB ID
@@ -54,7 +62,7 @@ namespace CineHub.Services
             return await _context.Movies.FindAsync(id);
         }
 
-        // Retrieves a movie by its TMDb ID. Tries API first; falls back to local DB
+        // Retrieves a movie by its TMDb ID
         public async Task<Movie?> GetMovieByTMDbIdAsync(int tmdbId)
         {
             try
@@ -73,11 +81,11 @@ namespace CineHub.Services
             return await _context.Movies.FirstOrDefaultAsync(m => m.TMDbId == tmdbId);
         }
 
-        // Searches movies by title. First tries API; falls back to DB
-        public async Task<List<Movie>> SearchMoviesAsync(string query, int page = 1)
+        // Searches movies by title with pagination
+        public async Task<PaginatedResult<Movie>> SearchMoviesAsync(string query, int page = 1, int pageSize = DefaultPageSize)
         {
             if (string.IsNullOrWhiteSpace(query))
-                return new List<Movie>();
+                return new PaginatedResult<Movie>(new List<Movie>(), 0, page, pageSize);
 
             try
             {
@@ -87,7 +95,7 @@ namespace CineHub.Services
                 {
                     var movies = new List<Movie>();
 
-                    foreach (var movieDto in moviesFromApi.Take(20))
+                    foreach (var movieDto in moviesFromApi.Take(pageSize))
                     {
                         var movie = await GetOrCreateMovieAsync(movieDto);
                         if (movie != null)
@@ -96,7 +104,8 @@ namespace CineHub.Services
                         }
                     }
 
-                    return movies;
+                    int estimatedTotal = Math.Min(page * pageSize + (moviesFromApi.Count == pageSize ? pageSize : 0), 1000);
+                    return new PaginatedResult<Movie>(movies, estimatedTotal, page, pageSize);
                 }
             }
             catch (Exception ex)
@@ -104,15 +113,22 @@ namespace CineHub.Services
                 Console.WriteLine($"API unavailable for search; falling back to DB: {ex.Message}");
             }
 
-            return await SearchMoviesInDatabaseAsync(query, page);
+            return await SearchMoviesInDatabaseAsync(query, page, pageSize);
         }
 
-        // Fetches top-rated movies. Falls back to DB if API fails
-        public async Task<List<Movie>> GetTopRatedMoviesAsync()
+        // Method to fetch movies without pagination (for Home)
+        public async Task<List<Movie>> SearchMoviesAsync(string query)
+        {
+            var result = await SearchMoviesAsync(query, 1, DefaultPageSize);
+            return result.Items;
+        }
+
+        // Fetches top-rated movies with pagination
+        public async Task<PaginatedResult<Movie>> GetTopRatedMoviesAsync(int page = 1, int pageSize = DefaultPageSize)
         {
             try
             {
-                var moviesFromApi = await _tmdbService.GetTopRatedMoviesAsync();
+                var moviesFromApi = await _tmdbService.GetTopRatedMoviesAsync(page);
 
                 if (moviesFromApi?.Any() == true)
                 {
@@ -127,7 +143,8 @@ namespace CineHub.Services
                         }
                     }
 
-                    return movies;
+                    int estimatedTotal = Math.Min(page * pageSize + (moviesFromApi.Count == pageSize ? pageSize : 0), 5000);
+                    return new PaginatedResult<Movie>(movies, estimatedTotal, page, pageSize);
                 }
             }
             catch (Exception ex)
@@ -135,11 +152,18 @@ namespace CineHub.Services
                 Console.WriteLine($"API unavailable for top-rated movies; falling back to DB: {ex.Message}");
             }
 
-            return await GetTopRatedMoviesFromDatabaseAsync();
+            return await GetTopRatedMoviesFromDatabaseAsync(page, pageSize);
         }
 
-        // Advanced search with optional title, rating, and year filters
-        public async Task<List<Movie>> AdvancedSearchAsync(string? query = null, int? minRating = null, int? releaseYear = null, int page = 1)
+        // Method to fetch top-rated movies without pagination (for Home)
+        public async Task<List<Movie>> GetTopRatedMoviesAsync()
+        {
+            var result = await GetTopRatedMoviesAsync(1, DefaultPageSize);
+            return result.Items;
+        }
+
+        // Performs an advanced search with optional filters and pagination
+        public async Task<PaginatedResult<Movie>> AdvancedSearchAsync(string? query = null, int? minRating = null, int? releaseYear = null, int page = 1, int pageSize = DefaultPageSize)
         {
             try
             {
@@ -171,7 +195,7 @@ namespace CineHub.Services
                 if (moviesFromApi?.Any() == true)
                 {
                     var movies = new List<Movie>();
-                    foreach (var movieDto in moviesFromApi.Take(20))
+                    foreach (var movieDto in moviesFromApi.Take(pageSize))
                     {
                         var movie = await GetOrCreateMovieAsync(movieDto);
                         if (movie != null)
@@ -180,7 +204,8 @@ namespace CineHub.Services
                         }
                     }
 
-                    return movies;
+                    int estimatedTotal = Math.Min(page * pageSize + (moviesFromApi.Count == pageSize ? pageSize : 0), 2000);
+                    return new PaginatedResult<Movie>(movies, estimatedTotal, page, pageSize);
                 }
             }
             catch (Exception ex)
@@ -188,11 +213,11 @@ namespace CineHub.Services
                 Console.WriteLine($"API unavailable for advanced search; falling back to DB: {ex.Message}");
             }
 
-            return await AdvancedSearchInDatabaseAsync(query, minRating, releaseYear, page);
+            return await AdvancedSearchInDatabaseAsync(query, minRating, releaseYear, page, pageSize);
         }
 
-        // Fetch movies by year. Falls back to DB if API fails
-        public async Task<List<Movie>> GetMoviesByYearAsync(int year, int page = 1)
+        // Fetches movies by year with pagination
+        public async Task<PaginatedResult<Movie>> GetMoviesByYearAsync(int year, int page = 1, int pageSize = DefaultPageSize)
         {
             try
             {
@@ -211,7 +236,8 @@ namespace CineHub.Services
                         }
                     }
 
-                    return movies;
+                    int estimatedTotal = Math.Min(page * pageSize + (moviesFromApi.Count == pageSize ? pageSize : 0), 1000);
+                    return new PaginatedResult<Movie>(movies, estimatedTotal, page, pageSize);
                 }
             }
             catch (Exception ex)
@@ -219,16 +245,12 @@ namespace CineHub.Services
                 Console.WriteLine($"API unavailable for movies by year; falling back to DB: {ex.Message}");
             }
 
-            return await _context.Movies
-                .Where(m => m.ReleaseDate.HasValue && m.ReleaseDate.Value.Year == year)
-                .OrderByDescending(m => m.VoteAverage)
-                .Skip((page - 1) * 20)
-                .Take(20)
-                .ToListAsync();
+            var query = _context.Movies.Where(m => m.ReleaseDate.HasValue && m.ReleaseDate.Value.Year == year);
+            return await GetPaginatedResultAsync(query.OrderByDescending(m => m.VoteAverage), page, pageSize);
         }
 
-        // Fetch movies by minimum rating. Falls back to DB if API fails
-        public async Task<List<Movie>> GetMoviesByMinRatingAsync(int minRating, int page = 1)
+        // Fetches movies by minimum rating with pagination
+        public async Task<PaginatedResult<Movie>> GetMoviesByMinRatingAsync(int minRating, int page = 1, int pageSize = DefaultPageSize)
         {
             try
             {
@@ -247,7 +269,8 @@ namespace CineHub.Services
                         }
                     }
 
-                    return movies;
+                    int estimatedTotal = Math.Min(page * pageSize + (moviesFromApi.Count == pageSize ? pageSize : 0), 1000);
+                    return new PaginatedResult<Movie>(movies, estimatedTotal, page, pageSize);
                 }
             }
             catch (Exception ex)
@@ -255,51 +278,40 @@ namespace CineHub.Services
                 Console.WriteLine($"API unavailable for movies by rating; falling back to DB: {ex.Message}");
             }
 
-            return await _context.Movies
-                .Where(m => (int)Math.Round(m.VoteAverage) >= minRating)
-                .OrderByDescending(m => m.VoteAverage)
-                .Skip((page - 1) * 20)
-                .Take(20)
-                .ToListAsync();
+            var query = _context.Movies.Where(m => (int)Math.Round(m.VoteAverage) >= minRating);
+            return await GetPaginatedResultAsync(query.OrderByDescending(m => m.VoteAverage), page, pageSize);
         }
 
-        #region Database Fallback Methods
-
-        // Fetch popular movies from DB
-        private async Task<List<Movie>> GetPopularMoviesFromDatabaseAsync(int page = 1)
+        // Retrieves popular movies from the database with pagination
+        private async Task<PaginatedResult<Movie>> GetPopularMoviesFromDatabaseAsync(int page = 1, int pageSize = DefaultPageSize)
         {
-            return await _context.Movies
-                .OrderByDescending(m => m.VoteAverage)
-                .ThenByDescending(m => m.VoteCount)
-                .Skip((page - 1) * 20)
-                .Take(20)
-                .ToListAsync();
+            var query = _context.Movies.OrderByDescending(m => m.VoteAverage).ThenByDescending(m => m.VoteCount);
+            return await GetPaginatedResultAsync(query, page, pageSize);
         }
 
-        // Search movies in DB by title or overview
-        private async Task<List<Movie>> SearchMoviesInDatabaseAsync(string query, int page = 1)
+        // Retrieves movies matching the search query from the database with pagination
+        private async Task<PaginatedResult<Movie>> SearchMoviesInDatabaseAsync(string query, int page = 1, int pageSize = DefaultPageSize)
         {
-            return await _context.Movies
+            var moviesQuery = _context.Movies
                 .Where(m => m.Title.ToLower().Contains(query.ToLower()) ||
                             m.Overview.ToLower().Contains(query.ToLower()))
-                .OrderByDescending(m => m.VoteAverage)
-                .Skip((page - 1) * 20)
-                .Take(20)
-                .ToListAsync();
+                .OrderByDescending(m => m.VoteAverage);
+
+            return await GetPaginatedResultAsync(moviesQuery, page, pageSize);
         }
 
-        // Fetch top-rated movies from DB
-        private async Task<List<Movie>> GetTopRatedMoviesFromDatabaseAsync()
+        // Retrieves top-rated movies from the database with pagination
+        private async Task<PaginatedResult<Movie>> GetTopRatedMoviesFromDatabaseAsync(int page = 1, int pageSize = DefaultPageSize)
         {
-            return await _context.Movies
+            var query = _context.Movies
                 .Where(m => m.VoteAverage >= 8.0)
-                .OrderByDescending(m => m.VoteAverage)
-                .Take(20)
-                .ToListAsync();
+                .OrderByDescending(m => m.VoteAverage);
+
+            return await GetPaginatedResultAsync(query, page, pageSize);
         }
 
-        // Advanced search in DB with optional title, rating, and year filters
-        private async Task<List<Movie>> AdvancedSearchInDatabaseAsync(string? query = null, int? minRating = null, int? releaseYear = null, int page = 1)
+        // Performs an advanced search on the database with optional filters and pagination
+        private async Task<PaginatedResult<Movie>> AdvancedSearchInDatabaseAsync(string? query = null, int? minRating = null, int? releaseYear = null, int page = 1, int pageSize = DefaultPageSize)
         {
             var moviesQuery = _context.Movies.AsQueryable();
 
@@ -320,16 +332,22 @@ namespace CineHub.Services
                 moviesQuery = moviesQuery.Where(m => (int)Math.Round(m.VoteAverage) >= minRating.Value);
             }
 
-            return await moviesQuery
-                .OrderByDescending(m => m.VoteAverage)
-                .Skip((page - 1) * 20)
-                .Take(20)
-                .ToListAsync();
+            return await GetPaginatedResultAsync(moviesQuery.OrderByDescending(m => m.VoteAverage), page, pageSize);
         }
 
-        #endregion
+        // Helper method to create a paginated result from a query
+        private async Task<PaginatedResult<Movie>> GetPaginatedResultAsync(IQueryable<Movie> query, int page, int pageSize)
+        {
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
-        // Retrieves or creates a movie in the DB
+            return new PaginatedResult<Movie>(items, totalCount, page, pageSize);
+        }
+
+        // Retrieves or creates a movie in the database
         private async Task<Movie?> GetOrCreateMovieAsync(MovieDTO movieDto)
         {
             var existingMovie = await _context.Movies

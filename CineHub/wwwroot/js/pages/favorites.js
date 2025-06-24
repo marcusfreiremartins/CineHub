@@ -31,7 +31,7 @@ function updateFavoriteCounter(count) {
         setTimeout(() => {
             const smallElement = counter.querySelector("small");
             if (smallElement) {
-                smallElement.textContent = `${count} favorite movie(s)`;
+                smallElement.textContent = `${count} filme(s) favorito(s)`;
             }
             counter.style.transform = "scale(1)";
             counter.style.opacity = "1";
@@ -62,20 +62,20 @@ function showEmptyFavoriteState() {
                 <div class="col-12">
                     <div class="text-center py-5" id="emptyFavoritesState">
                         <div class="display-1 text-muted mb-4">💔</div>
-                        <h3 class="text-muted mb-3">You have no more favorites</h3>
-                        <p class="text-muted mb-4">All movies have been removed from your favorites. How about exploring more?</p>
+                        <h3 class="text-muted mb-3">Você ainda não tem filmes favoritos</h3>
+                        <p class="text-muted mb-4">Todos os filmes foram removidos dos seus favoritos. Que tal explorar mais?</p>
                         <div class="d-flex flex-wrap justify-content-center gap-2">
                             <a href="/Movies/Popular" class="btn btn-primary">
                                 <i class="fas fa-fire me-1"></i>
-                                Popular Movies
+                                Filmes Populares
                             </a>
                             <a href="/Movies/TopRated" class="btn btn-outline-primary">
                                 <i class="fas fa-trophy me-1"></i>
-                                Top Rated
+                                Melhores Avaliados
                             </a>
                             <a href="/Search" class="btn btn-outline-secondary">
                                 <i class="fas fa-search me-1"></i>
-                                Search
+                                Procurar
                             </a>
                         </div>
                     </div>
@@ -364,7 +364,7 @@ function initializeBulkActions() {
 
         removeSelectedBtn.addEventListener("click", async () => {
             if (selectedCards.size === 0) return;
-            const confirmed = confirm(`Remove ${selectedCards.size} favorite movie(s)?`);
+            const confirmed = confirm(`Remove ${selectedCards.size} filme(s) favorito(s)?`);
             if (!confirmed) return;
 
             const movieIds = Array.from(selectedCards);
