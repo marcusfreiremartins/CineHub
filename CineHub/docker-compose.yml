@@ -1,0 +1,52 @@
+﻿version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL 17
+  postgres:
+    image: postgres:17
+    container_name: cinehub-postgres
+    environment:
+      POSTGRES_DB: your_database_name
+      POSTGRES_USER: your_database_user
+      POSTGRES_PASSWORD: your_secret_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C.UTF-8 --lc-ctype=C.UTF-8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql
+    networks:
+      - cinehub-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U your_database_user -d your_database_name"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicação .NET 8
+  cinehub-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cinehub-app
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=your_database_name;Username=your_database_user;Password=your_secret_password
+    ports:
+      - "5277:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cinehub-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  cinehub-network:
+    driver: bridge
