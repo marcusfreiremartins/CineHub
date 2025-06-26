@@ -1,10 +1,10 @@
 # CineHub
-
-**CineHub** é uma aplicação web desenvolvida como parte de um teste técnico, utilizando a stack ASP.NET Core MVC com foco em autenticação, consumo de API externa e persistência de dados com Entity Framework Core.
+CineHub é uma aplicação web desenvolvida que serve como uma espécie de hub para filmes, utilizando a stack ASP.NET Core MVC com foco em autenticação, consumo de API externa e persistência de dados com Entity Framework Core.
+Link do website: cinehub-app.up.railway.app
 
 ## 🧰 Tecnologias e Ferramentas Utilizadas
 
-- **Framework**: ASP.NET Core MVC (.NET 7+)
+- **Framework**: ASP.NET Core MVC (.NET 8+)
 - **Frontend**: Razor Pages, HTML5, CSS3, JavaScript
 - **Backend**: C#
 - **ORM**: Entity Framework Core
