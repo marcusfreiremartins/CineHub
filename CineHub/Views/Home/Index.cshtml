@@ -4,81 +4,117 @@
 }
 
 <link rel="stylesheet" href="~/css/pages/movie-carousel.css" />
+<link rel="stylesheet" href="~/css/pages/home-presentation.css" />
 
-@if (!string.IsNullOrEmpty(Model.Search))
-{
-    <div class="alert alert-info">
-        <strong>Resultados para:</strong> "@Model.Search"
-        <small>(@Model.Movies.Count filme(s) encontrado(s))</small>
-    </div>
+<section class="hero-section">
+    <div class="hero-container">
+        <div class="hero-header">
+            <h1>CineHub - Sistema de Filmes</h1>
+            <p>Plataforma completa para descobrir, avaliar e gerenciar filmes. Desenvolvida com ASP.NET Core MVC como demonstração de habilidades em desenvolvimento web.</p>
+        </div>
 
-    <h2 class="mb-4">🔍 Resultados da Busca</h2>
-
-    @if (Model.Movies.Any())
-    {
-        <div class="row">
-            @foreach (var movie in Model.Movies)
-            {
-                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-                    <div class="card h-100 shadow-sm movie-card">
-                        @if (!string.IsNullOrEmpty(movie.PosterPath))
-                        {
-                            <img src="@Model.ImageBaseUrl@movie.PosterPath"
-                                 class="card-img-top" alt="@movie.Title"
-                                 style="height: 400px; object-fit: cover;">
-                        }
-                        else
-                        {
-                            <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center text-white"
-                                 style="height: 400px;">
-                                <span class="fs-1">🎬</span>
-                            </div>
-                        }
-
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">@movie.Title</h5>
-
-                            <div class="mb-2">
-                                @if (movie.ReleaseDate.HasValue)
-                                {
-                                    <small class="text-muted">📅 @movie.ReleaseDate.Value.Year</small>
-                                }
-
-                                @if (movie.VoteAverage > 0)
-                                {
-                                    <span class="badge bg-warning text-dark ms-2">
-                                        ⭐ @movie.VoteAverage.ToString("F1")
-                                    </span>
-                                }
-                            </div>
-
-                            <div class="mt-auto">
-                                <a asp-controller="Movies" asp-action="Details" asp-route-id="@movie.Id"
-                                   class="btn btn-primary btn-sm w-100">
-                                    Ver Detalhes
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+        <div class="hero-features">
+            <div class="hero-feature warning-feature">
+                <div class="hero-feature-icon">⚠️</div>
+                <div class="hero-feature-content">
+                    <h3>⚡ Importante - Dados de Teste</h3>
+                    <p><strong>NÃO use dados reais!</strong> Este é um projeto demonstrativo. Use qualquer email inventado (ex: teste@email.com) e senha simples para testar.</p>
                 </div>
-            }
+            </div>
+
+            <div class="hero-feature">
+                <div class="hero-feature-icon">🔐</div>
+                <div class="hero-feature-content">
+                    <h3>Sistema de Autenticação</h3>
+                    <p>Cadastro e login completos com validação. Crie uma conta fictícia para acessar todas as funcionalidades: avaliações, lista pessoal e preferências.</p>
+                </div>
+            </div>
+
+            <div class="hero-feature">
+                <div class="hero-feature-icon">🎬</div>
+                <div class="hero-feature-content">
+                    <h3>Catálogo Integrado</h3>
+                    <p>Integração com API do The Movie Database (TMDB) para dados reais: filmes populares, melhores avaliados, detalhes completos.</p>
+                </div>
+            </div>
+
+            <div class="hero-feature">
+                <div class="hero-feature-icon">⭐</div>
+                <div class="hero-feature-content">
+                    <h3>Sistema de Avaliações</h3>
+                    <p>Avalie filmes com notas de 0 a 10, veja médias calculadas automaticamente e explore rankings baseados nas avaliações da comunidade e do TMDB.</p>
+                </div>
+            </div>
+
+            <div class="hero-feature">
+                <div class="hero-feature-icon">🔍</div>
+                <div class="hero-feature-content">
+                    <h3>Busca Inteligente</h3>
+                    <p>Sistema de busca robusto que encontra filmes por título, com resultados organizados, filtros por popularidade e ano de lançamento.</p>
+                </div>
+            </div>
+
+            <div class="hero-feature">
+                <div class="hero-feature-icon">📱</div>
+                <div class="hero-feature-content">
+                    <h3>Design Responsivo</h3>
+                    <p>Interface moderna e responsiva que funciona perfeitamente em desktop, tablet e mobile. Carrosséis interativos e navegação fluida.</p>
+                </div>
+            </div>
         </div>
-    }
-    else
-    {
-        <div class="text-center py-5">
-            <div class="display-1 text-muted">🎭</div>
-            <h3 class="text-muted">Nenhum filme encontrado</h3>
-            <p class="text-muted">Tente uma busca diferente ou verifique sua conexão.</p>
-            <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
-                Ver Filmes Populares
-            </a>
+
+        <div class="hero-tech-stack">
+            <h3>🛠️ Tecnologias Utilizadas</h3>
+            <div class="tech-badges">
+                <span class="tech-badge">C#</span>
+                <span class="tech-badge">.NET 8</span>
+                <span class="tech-badge">ASP.NET Core MVC</span>
+                <span class="tech-badge">JavaScript</span>
+                <span class="tech-badge">Entity Framework</span>
+                <span class="tech-badge">PostgreSQL</span>
+                <span class="tech-badge">Docker</span>
+            </div>
         </div>
-    }
-}
-else
-{
-    <!-- Popular Movies Carousel -->
+
+        <div class="hero-demo-guide">
+            <h3>🎯 Como Testar o Sistema</h3>
+            <div class="demo-steps">
+                <div class="demo-step">
+                    <span class="step-number">1</span>
+                    <p>Crie uma conta com dados fictícios (ex: usuario@teste.com / senha123)</p>
+                </div>
+                <div class="demo-step">
+                    <span class="step-number">2</span>
+                    <p>Explore filmes populares e melhores avaliados nos carrosséis</p>
+                </div>
+                <div class="demo-step">
+                    <span class="step-number">3</span>
+                    <p>Use a busca para encontrar filmes específicos</p>
+                </div>
+                <div class="demo-step">
+                    <span class="step-number">4</span>
+                    <p>Avalie filmes e veja como o sistema calcula médias</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-cta">
+            <div class="cta-buttons">
+                <a href="#movies-section" class="hero-btn primary">
+                    🎬 Explorar Filmes
+                </a>
+                <a asp-controller="Auth" asp-action="Register" class="hero-btn secondary">
+                    👤 Criar Conta Teste
+                </a>
+            </div>
+            <p class="cta-disclaimer">
+                <small>⚡ Lembre-se: use apenas dados fictícios para teste</small>
+            </p>
+        </div>
+    </div>
+</section>
+
+<section id="movies-section" class="movies-section">
     @if (Model.PopularMovies.Any())
     {
         <div class="movie-carousel-container" id="popular-movies-carousel">
@@ -139,7 +175,6 @@ else
                 </div>
             </div>
 
-            <!-- See More Button for Popular Movies -->
             <div class="carousel-see-more">
                 <a asp-controller="Movies" asp-action="Popular" class="see-more-btn">
                     <span>Ver Todos os Filmes Populares</span>
@@ -149,7 +184,6 @@ else
         </div>
     }
 
-    <!-- Top TMDB Carousel -->
     @if (Model.TopRatedMovies.Any())
     {
         <div class="movie-carousel-container" id="top-rated-carousel">
@@ -184,7 +218,6 @@ else
                                     </div>
                                 }
 
-                                <!-- Ranking badge -->
                                 <div style="position: absolute; top: 10px; left: 10px; background: linear-gradient(45deg, #gold, #ffd700); color: #333; font-weight: bold; padding: 5px 10px; border-radius: 20px; font-size: 14px;">
                                     #@movie.ranking
                                 </div>
@@ -217,7 +250,6 @@ else
                 </div>
             </div>
 
-            <!-- See More Button for Top Rated Movies -->
             <div class="carousel-see-more">
                 <a asp-controller="Movies" asp-action="TopRated" class="see-more-btn top-rated">
                     <span>Ver Todos os Melhores Avaliados</span>
@@ -235,7 +267,7 @@ else
             <p class="text-muted">Aguarde enquanto buscamos os melhores filmes para você.</p>
         </div>
     }
-}
+</section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 <script src="~/js/pages/movie-carousel.js"></script>
