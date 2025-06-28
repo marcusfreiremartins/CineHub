@@ -3,6 +3,9 @@
     ViewData["Title"] = Model.Movie.Title;
 }
 
+<link rel="stylesheet" href="~/css/pages/movie-details.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/shared/pagination.css" asp-append-version="true" />
+
 <div class="row">
     <div class="col-md-4">
         @if (!string.IsNullOrEmpty(Model.Movie.PosterPath))
@@ -100,7 +103,7 @@
 <div class="row mt-5">
     <div class="col-12">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap" id="comments-header">
                 <h4 class="mb-0 d-flex align-items-center gap-2">
                     <span aria-hidden="true">💬</span>
                     <span>Avaliações dos Usuários</span>
@@ -160,24 +163,25 @@
 
                     @if (Model.Comments.TotalPages > 1)
                     {
-                        <nav aria-label="Paginação de comentários" class="mt-4">
-                            <ul class="pagination justify-content-center">
-                                @if (Model.Comments.HasPreviousPage)
-                                {
-                                    <li class="page-item">
-                                        <a class="page-link"
-                                           href="#"
-                                           onclick="loadComments(@(Model.Comments.CurrentPage - 1)); return false;"
-                                           aria-label="Ir para página anterior">
-                                            <span aria-hidden="true">←</span> Anterior
-                                        </a>
-                                    </li>
-                                }
+                        <nav aria-label="Navegação de páginas de comentários" class="mt-5" id="pagination-container">
+                            <ul class="pagination justify-content-center flex-wrap">
+                                @* Página anterior *@
+                                <li class="page-item @(Model.Comments.CurrentPage <= 1 ? "disabled" : "")">
+                                    <a class="page-link"
+                                       href="#"
+                                       onclick="@(Model.Comments.CurrentPage <= 1 ? "return false;" : $"loadComments({Model.Comments.CurrentPage - 1}); return false;")"
+                                       aria-label="Página anterior"
+                                    @(Model.Comments.CurrentPage <= 1 ? "tabindex=\"-1\"" : "")>
+                                        <span aria-hidden="true">&laquo;</span>
+                                        <span class="d-none d-sm-inline ms-1"></span>
+                                    </a>
+                                </li>
 
+                                @* Páginas numeradas *@
                                 @for (int i = Math.Max(1, Model.Comments.CurrentPage - 2); i <= Math.Min(Model.Comments.TotalPages, Model.Comments.CurrentPage + 2); i++)
                                 {
                                     <li class="page-item @(i == Model.Comments.CurrentPage ? "active" : "")">
-                                        <a class="page-link"
+                                        <a class="page-link page-number"
                                            href="#"
                                            onclick="loadComments(@i); return false;"
                                            aria-label="@(i == Model.Comments.CurrentPage ? "Página atual, " : "Ir para ")página @i"
@@ -187,17 +191,17 @@
                                     </li>
                                 }
 
-                                @if (Model.Comments.HasNextPage)
-                                {
-                                    <li class="page-item">
-                                        <a class="page-link"
-                                           href="#"
-                                           onclick="loadComments(@(Model.Comments.CurrentPage + 1)); return false;"
-                                           aria-label="Ir para próxima página">
-                                            Próxima <span aria-hidden="true">→</span>
-                                        </a>
-                                    </li>
-                                }
+                                @* Próxima página *@
+                                <li class="page-item @(Model.Comments.CurrentPage >= Model.Comments.TotalPages ? "disabled" : "")">
+                                    <a class="page-link"
+                                       href="#"
+                                       onclick="@(Model.Comments.CurrentPage >= Model.Comments.TotalPages ? "return false;" : $"loadComments({Model.Comments.CurrentPage + 1}); return false;")"
+                                       aria-label="Próxima página"
+                                    @(Model.Comments.CurrentPage >= Model.Comments.TotalPages ? "tabindex=\"-1\"" : "")>
+                                        <span class="d-none d-sm-inline me-1"></span>
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
                             </ul>
                         </nav>
                     }
