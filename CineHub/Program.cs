@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using CineHub.Data;
 using CineHub.Services;
 using CineHub.Configuration;
+using CineHub.Services.Ranking;
 
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -18,6 +19,7 @@ builder.Services.AddHttpClient<TMDbService>();
 builder.Services.AddScoped<MovieService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<RatingService>();
+builder.Services.AddScoped<IRankingService, MovieRankingService>();
 
 builder.Services.AddSession(options =>
 {

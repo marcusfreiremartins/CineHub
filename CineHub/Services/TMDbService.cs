@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
 using CineHub.Models.DTOs;
 using System.Net;
+using CineHub.Services.Ranking;
+using CineHub.Models;
 
 namespace CineHub.Services
 {
@@ -8,11 +10,13 @@ namespace CineHub.Services
     {
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
+        private readonly IRankingService _rankingService;
         private readonly string _baseUrl = "https://api.themoviedb.org/3";
 
-        public TMDbService(HttpClient httpClient, IConfiguration configuration)
+        public TMDbService(HttpClient httpClient, IConfiguration configuration, IRankingService rankingService)
         {
             _httpClient = httpClient;
+            _rankingService = rankingService;
             _apiKey = configuration["TMDb:ApiKey"] ?? "demo_key";
 
             // Configure request timeout
@@ -115,7 +119,17 @@ namespace CineHub.Services
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     var result = JsonSerializer.Deserialize<TMDbResponse>(json);
-                    return result?.Results ?? new List<MovieDTO>();
+                    var movies = result?.Results ?? new List<MovieDTO>();
+
+                    // Convert DTOs to Movies for ranking, then back to DTOs
+                    if (movies.Any())
+                    {
+                        var movieEntities = ConvertDtosToMovies(movies);
+                        var rankedMovies = _rankingService.ApplySearchRelevanceRanking(movieEntities, query);
+                        return ConvertMoviesToDtos(rankedMovies);
+                    }
+
+                    return movies;
                 }
                 else
                 {
@@ -186,14 +200,27 @@ namespace CineHub.Services
             try
             {
                 var response = await _httpClient.GetAsync(
-                    $"{_baseUrl}/discover/movie?api_key={_apiKey}&primary_release_year={year}&page={page}&language=pt-BR&sort_by=popularity.desc"
+                    $"{_baseUrl}/discover/movie?api_key={_apiKey}" +
+                    $"&primary_release_year={year}" +
+                    $"&page={page}&language=pt-BR" +
+                    $"&sort_by=vote_count.desc"
                 );
 
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     var result = JsonSerializer.Deserialize<TMDbResponse>(json);
-                    return result?.Results ?? new List<MovieDTO>();
+                    var movies = result?.Results ?? new List<MovieDTO>();
+
+                    // Apply Wilson Score ranking for year-based searches
+                    if (movies.Any())
+                    {
+                        var movieEntities = ConvertDtosToMovies(movies);
+                        var rankedMovies = _rankingService.ApplyWilsonScoreRanking(movieEntities);
+                        return ConvertMoviesToDtos(rankedMovies);
+                    }
+
+                    return movies;
                 }
                 else
                 {
@@ -218,20 +245,33 @@ namespace CineHub.Services
             }
         }
 
-        // Fetches movies with a minimum rating
+        // Fetches movies with a minimum rating - APPLIES WILSON SCORE RANKING
         public async Task<List<MovieDTO>> GetMoviesByMinRatingAsync(double minRating, int page = 1)
         {
             try
             {
                 var response = await _httpClient.GetAsync(
-                    $"{_baseUrl}/discover/movie?api_key={_apiKey}&vote_average.gte={minRating}&page={page}&language=pt-BR&sort_by=popularity.desc&vote_count.gte=100"
+                    $"{_baseUrl}/discover/movie?api_key={_apiKey}" +
+                    $"&vote_average.gte={minRating}&page={page}" +
+                    $"&language=pt-BR" +
+                    $"&sort_by=vote_count.desc"
                 );
 
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     var result = JsonSerializer.Deserialize<TMDbResponse>(json);
-                    return result?.Results ?? new List<MovieDTO>();
+                    var movies = result?.Results ?? new List<MovieDTO>();
+
+                    // Apply Wilson Score ranking for rating-based searches
+                    if (movies.Any())
+                    {
+                        var movieEntities = ConvertDtosToMovies(movies);
+                        var rankedMovies = _rankingService.ApplyWilsonScoreRanking(movieEntities);
+                        return ConvertMoviesToDtos(rankedMovies);
+                    }
+
+                    return movies;
                 }
                 else
                 {
@@ -256,7 +296,7 @@ namespace CineHub.Services
             }
         }
 
-        // Advanced discover search combining multiple filters
+        // Advanced discover search combining multiple filters - APPLIES WILSON SCORE RANKING
         public async Task<List<MovieDTO>> DiscoverMoviesAsync(int? year = null, double? minRating = null, int page = 1)
         {
             try
@@ -265,16 +305,15 @@ namespace CineHub.Services
                 {
                     $"api_key={_apiKey}",
                     $"page={page}",
-                    "language=pt-BR",
-                    "sort_by=popularity.desc"
+                    $"language=pt-BR",
+                    $"sort_by=vote_count.desc"
                 };
 
-                if (year.HasValue) queryParams.Add($"primary_release_year={year.Value}");
+                if (year.HasValue)
+                    queryParams.Add($"primary_release_year={year.Value}");
+
                 if (minRating.HasValue)
-                {
                     queryParams.Add($"vote_average.gte={minRating.Value}");
-                    queryParams.Add("vote_count.gte=50");
-                }
 
                 var queryString = string.Join("&", queryParams);
                 var response = await _httpClient.GetAsync($"{_baseUrl}/discover/movie?{queryString}");
@@ -283,7 +322,17 @@ namespace CineHub.Services
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     var result = JsonSerializer.Deserialize<TMDbResponse>(json);
-                    return result?.Results ?? new List<MovieDTO>();
+                    var movies = result?.Results ?? new List<MovieDTO>();
+
+                    // Apply Wilson Score ranking for discovery searches
+                    if (movies.Any())
+                    {
+                        var movieEntities = ConvertDtosToMovies(movies);
+                        var rankedMovies = _rankingService.ApplyWilsonScoreRanking(movieEntities);
+                        return ConvertMoviesToDtos(rankedMovies);
+                    }
+
+                    return movies;
                 }
                 else
                 {
@@ -308,7 +357,7 @@ namespace CineHub.Services
             }
         }
 
-        // Search movies by query and optional filters
+        // Search movies by query and optional filters - APPLIES SEARCH RELEVANCE OR WILSON SCORE RANKING
         public async Task<List<MovieDTO>> SearchMoviesWithFiltersAsync(string? query = null, int? year = null, double? minRating = null, int page = 1)
         {
             if (!string.IsNullOrWhiteSpace(query))
@@ -325,7 +374,17 @@ namespace CineHub.Services
                     if (minRating.HasValue)
                         filteredResults = filteredResults.Where(m => m.VoteAverage >= minRating.Value);
 
-                    return filteredResults.ToList();
+                    var finalResults = filteredResults.ToList();
+
+                    // Apply additional ranking after filtering if we have results
+                    if (finalResults.Any())
+                    {
+                        var movieEntities = ConvertDtosToMovies(finalResults);
+                        var rankedMovies = _rankingService.ApplySearchRelevanceRanking(movieEntities, query);
+                        return ConvertMoviesToDtos(rankedMovies);
+                    }
+
+                    return finalResults;
                 }
                 catch
                 {
@@ -353,6 +412,39 @@ namespace CineHub.Services
             {
                 return false;
             }
+        }
+
+        // Helper method to convert MovieDTO list to Movie list for ranking
+        private List<Movie> ConvertDtosToMovies(List<MovieDTO> dtos)
+        {
+            return dtos.Select(dto => new Movie
+            {
+                TMDbId = dto.Id,
+                Title = dto.Title ?? string.Empty,
+                Overview = dto.Overview ?? string.Empty,
+                ReleaseDate = !string.IsNullOrEmpty(dto.ReleaseDate) && DateTime.TryParse(dto.ReleaseDate, out var date)
+                    ? DateTime.SpecifyKind(date, DateTimeKind.Utc)
+                    : null,
+                PosterPath = dto.PosterPath ?? string.Empty,
+                VoteAverage = dto.VoteAverage,
+                VoteCount = dto.VoteCount,
+                LastUpdated = DateTime.UtcNow
+            }).ToList();
+        }
+
+        // Helper method to convert Movie list back to MovieDTO list
+        private List<MovieDTO> ConvertMoviesToDtos(List<Movie> movies)
+        {
+            return movies.Select(movie => new MovieDTO
+            {
+                Id = movie.TMDbId,
+                Title = movie.Title ?? string.Empty,
+                Overview = movie.Overview ?? string.Empty,
+                ReleaseDate = movie.ReleaseDate?.ToString("yyyy-MM-dd") ?? string.Empty,
+                PosterPath = movie.PosterPath ?? string.Empty,
+                VoteAverage = movie.VoteAverage,
+                VoteCount = movie.VoteCount
+            }).ToList();
         }
     }
 }

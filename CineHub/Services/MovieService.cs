@@ -2,6 +2,7 @@
 using CineHub.Data;
 using CineHub.Models;
 using CineHub.Models.DTOs;
+using CineHub.Services.Ranking;
 
 namespace CineHub.Services
 {
@@ -9,12 +10,15 @@ namespace CineHub.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly TMDbService _tmdbService;
+        private readonly IRankingService _rankingService;
         private const int DefaultPageSize = 20;
 
-        public MovieService(ApplicationDbContext context, TMDbService tmdbService)
+        public MovieService(ApplicationDbContext context, TMDbService tmdbService, IRankingService rankingService)
         {
             _context = context;
             _tmdbService = tmdbService;
+            _rankingService = rankingService;
+
         }
 
         // Retrieves popular movies with pagination
@@ -36,6 +40,8 @@ namespace CineHub.Services
                             movies.Add(movie);
                         }
                     }
+
+                    movies = _rankingService.ApplyPopularityRanking(movies);
 
                     int estimatedTotal = Math.Min(page * pageSize + (moviesFromApi.Count == pageSize ? pageSize : 0), 10000);
                     return new PaginatedResult<Movie>(movies, estimatedTotal, page, pageSize);
@@ -104,6 +110,8 @@ namespace CineHub.Services
                         }
                     }
 
+                    movies = _rankingService.ApplyTopRatedRanking(movies, minVotes: 50);
+
                     int estimatedTotal = Math.Min(page * pageSize + (moviesFromApi.Count == pageSize ? pageSize : 0), 1000);
                     return new PaginatedResult<Movie>(movies, estimatedTotal, page, pageSize);
                 }
@@ -142,6 +150,8 @@ namespace CineHub.Services
                             movies.Add(movie);
                         }
                     }
+
+                    movies = _rankingService.ApplyTopRatedRanking(movies, minVotes: 50);
 
                     int estimatedTotal = Math.Min(page * pageSize + (moviesFromApi.Count == pageSize ? pageSize : 0), 5000);
                     return new PaginatedResult<Movie>(movies, estimatedTotal, page, pageSize);
@@ -204,6 +214,8 @@ namespace CineHub.Services
                         }
                     }
 
+                    movies = _rankingService.ApplyWilsonScoreRanking(movies);
+
                     int estimatedTotal = Math.Min(page * pageSize + (moviesFromApi.Count == pageSize ? pageSize : 0), 2000);
                     return new PaginatedResult<Movie>(movies, estimatedTotal, page, pageSize);
                 }
@@ -236,6 +248,8 @@ namespace CineHub.Services
                         }
                     }
 
+                    movies = _rankingService.ApplyWilsonScoreRanking(movies);
+
                     int estimatedTotal = Math.Min(page * pageSize + (moviesFromApi.Count == pageSize ? pageSize : 0), 1000);
                     return new PaginatedResult<Movie>(movies, estimatedTotal, page, pageSize);
                 }
@@ -246,7 +260,7 @@ namespace CineHub.Services
             }
 
             var query = _context.Movies.Where(m => m.ReleaseDate.HasValue && m.ReleaseDate.Value.Year == year);
-            return await GetPaginatedResultAsync(query.OrderByDescending(m => m.VoteAverage), page, pageSize);
+            return await GetPaginatedResultWithWilsonScore(query, page, pageSize);
         }
 
         // Fetches movies by minimum rating with pagination
@@ -269,6 +283,8 @@ namespace CineHub.Services
                         }
                     }
 
+                    movies = _rankingService.ApplyWilsonScoreRanking(movies);
+
                     int estimatedTotal = Math.Min(page * pageSize + (moviesFromApi.Count == pageSize ? pageSize : 0), 1000);
                     return new PaginatedResult<Movie>(movies, estimatedTotal, page, pageSize);
                 }
@@ -279,14 +295,14 @@ namespace CineHub.Services
             }
 
             var query = _context.Movies.Where(m => (int)Math.Round(m.VoteAverage) >= minRating);
-            return await GetPaginatedResultAsync(query.OrderByDescending(m => m.VoteAverage), page, pageSize);
+            return await GetPaginatedResultWithWilsonScore(query, page, pageSize);
         }
 
         // Retrieves popular movies from the database with pagination
         private async Task<PaginatedResult<Movie>> GetPopularMoviesFromDatabaseAsync(int page = 1, int pageSize = DefaultPageSize)
         {
             var query = _context.Movies.OrderByDescending(m => m.VoteAverage).ThenByDescending(m => m.VoteCount);
-            return await GetPaginatedResultAsync(query, page, pageSize);
+            return await GetPaginatedResultWithWilsonScore(query, page, pageSize);
         }
 
         // Retrieves movies matching the search query from the database with pagination
@@ -294,20 +310,16 @@ namespace CineHub.Services
         {
             var moviesQuery = _context.Movies
                 .Where(m => m.Title.ToLower().Contains(query.ToLower()) ||
-                            m.Overview.ToLower().Contains(query.ToLower()))
-                .OrderByDescending(m => m.VoteAverage);
+                            m.Overview.ToLower().Contains(query.ToLower()));
 
-            return await GetPaginatedResultAsync(moviesQuery, page, pageSize);
+            return await GetPaginatedResultWithWilsonScore(moviesQuery, page, pageSize);
         }
 
         // Retrieves top-rated movies from the database with pagination
         private async Task<PaginatedResult<Movie>> GetTopRatedMoviesFromDatabaseAsync(int page = 1, int pageSize = DefaultPageSize)
         {
-            var query = _context.Movies
-                .Where(m => m.VoteAverage >= 8.0)
-                .OrderByDescending(m => m.VoteAverage);
-
-            return await GetPaginatedResultAsync(query, page, pageSize);
+            var query = _context.Movies.Where(m => m.VoteAverage >= 8.0);
+            return await GetPaginatedResultWithWilsonScore(query, page, pageSize);
         }
 
         // Performs an advanced search on the database with optional filters and pagination
@@ -332,16 +344,34 @@ namespace CineHub.Services
                 moviesQuery = moviesQuery.Where(m => (int)Math.Round(m.VoteAverage) >= minRating.Value);
             }
 
-            return await GetPaginatedResultAsync(moviesQuery.OrderByDescending(m => m.VoteAverage), page, pageSize);
+            return await GetPaginatedResultWithWilsonScore(moviesQuery, page, pageSize);
         }
 
-        // Helper method to create a paginated result from a query
+        // Helper method to create a paginated result with Wilson Score ranking
+        private async Task<PaginatedResult<Movie>> GetPaginatedResultWithWilsonScore(IQueryable<Movie> query, int page, int pageSize)
+        {
+            var totalCount = await query.CountAsync();
+
+            var allItems = await query.ToListAsync();
+
+            var rankedItems = _rankingService.ApplyWilsonScoreRanking(allItems);
+
+            var paginatedItems = rankedItems
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PaginatedResult<Movie>(paginatedItems, totalCount, page, pageSize);
+        }
+
+        // Helper method to create a paginated result from a query (método original mantido para compatibilidade)
         private async Task<PaginatedResult<Movie>> GetPaginatedResultAsync(IQueryable<Movie> query, int page, int pageSize)
         {
             var totalCount = await query.CountAsync();
             var items = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
+                .OrderByDescending(m => m.VoteCount)
                 .ToListAsync();
 
             return new PaginatedResult<Movie>(items, totalCount, page, pageSize);

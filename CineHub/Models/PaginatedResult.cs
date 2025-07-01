@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace CineHub.Models
+﻿namespace CineHub.Models
 {
     public class PaginatedResult<T>
     {
