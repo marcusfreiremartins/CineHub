@@ -156,7 +156,7 @@ namespace CineHub.Services
 
         // Fetches top-rated movies with optional pagination
         public async Task<List<MovieDTO>> GetTopRatedMoviesAsync(int page = 1)
-        {
+         {
             try
             {
                 var response = await _httpClient.GetAsync(
@@ -426,6 +426,7 @@ namespace CineHub.Services
                     ? DateTime.SpecifyKind(date, DateTimeKind.Utc)
                     : null,
                 PosterPath = dto.PosterPath ?? string.Empty,
+                BackdropPath = dto.BackdropPath ?? string.Empty,
                 VoteAverage = dto.VoteAverage,
                 VoteCount = dto.VoteCount,
                 LastUpdated = DateTime.UtcNow
@@ -442,9 +443,67 @@ namespace CineHub.Services
                 Overview = movie.Overview ?? string.Empty,
                 ReleaseDate = movie.ReleaseDate?.ToString("yyyy-MM-dd") ?? string.Empty,
                 PosterPath = movie.PosterPath ?? string.Empty,
+                BackdropPath = movie.BackdropPath ?? string.Empty,
                 VoteAverage = movie.VoteAverage,
                 VoteCount = movie.VoteCount
             }).ToList();
+        }
+
+        public async Task<(List<PersonDTO> Cast, List<PersonDTO> Crew)> GetMovieCreditsAsync(int movieId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(
+                    $"{_baseUrl}/movie/{movieId}/credits?api_key={_apiKey}&language=pt-BR"
+                );
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<MovieCreditsResponse>(json);
+                    return (result?.Cast ?? new List<PersonDTO>(), result?.Crew ?? new List<PersonDTO>());
+                }
+                else
+                {
+                    Console.WriteLine($"TMDb API returned error for movie credits: {response.StatusCode}");
+                    throw new HttpRequestException($"API error: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while fetching movie credits: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<PersonDTO?> GetPersonDetailsAsync(int personId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync(
+                    $"{_baseUrl}/person/{personId}?api_key={_apiKey}&language=pt-BR"
+                );
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<PersonDTO>(json);
+                }
+                else if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    Console.WriteLine($"TMDb API returned error for person details: {response.StatusCode}");
+                    throw new HttpRequestException($"API error: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error while fetching person details: {ex.Message}");
+                throw;
+            }
         }
     }
 }

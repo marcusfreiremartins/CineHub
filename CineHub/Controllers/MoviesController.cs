@@ -11,15 +11,19 @@ namespace CineHub.Controllers
     {
         private readonly MovieService _movieService;
         private readonly RatingService _ratingService;
+        private readonly PersonService _personService;
         private readonly ImageSettings _imageSettings;
+
 
         public MoviesController(
             MovieService movieService,
             RatingService ratingService,
+            PersonService personService,
             IOptions<ImageSettings> imageSettings)
         {
             _movieService = movieService;
             _ratingService = ratingService;
+            _personService = personService;
             _imageSettings = imageSettings.Value;
         }
 
@@ -107,10 +111,9 @@ namespace CineHub.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(int id, int page = 1)
         {
-            const int pageSize = 5;
-
             try
             {
+                const int pageSize = 5;
                 var movie = await _movieService.GetMovieByIdAsync(id);
                 if (movie == null)
                 {
@@ -118,6 +121,7 @@ namespace CineHub.Controllers
                     return RedirectToAction("Popular");
                 }
 
+                var credits = await _personService.GetMovieCreditsAsync(movie);
                 var (comments, totalComments) = await _ratingService.GetMovieCommentsAsync(id, page, pageSize);
                 var (averageRating, totalRatings) = await _ratingService.GetMovieRatingStatsAsync(id);
 
@@ -147,7 +151,8 @@ namespace CineHub.Controllers
                     ImageBaseUrl = _imageSettings.BaseUrl,
                     Comments = commentsViewModel,
                     AverageUserRating = averageRating,
-                    TotalUserRatings = totalRatings
+                    TotalUserRatings = totalRatings,
+                    Credits = credits
                 };
 
                 return View(viewModel);

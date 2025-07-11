@@ -1,27 +1,27 @@
-# Use a imagem base do .NET 8 SDK para build
+# Use the .NET 8 SDK base image for build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copiar o arquivo de projeto e restaurar dependências
+# Copy the project file and restore dependencies
 COPY *.csproj ./
 RUN dotnet restore
 
-# Copiar todo o código fonte
+# Copy all source code
 COPY . ./
 
-# Fazer o build da aplicação
+# Build the application
 RUN dotnet publish -c Release -o out
 
-# Use a imagem runtime do .NET 8 para execução
+# Use the .NET 8 runtime image for execution
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
-# Copiar os arquivos publicados do estágio de build
+# Copy the published files from the build stage
 COPY --from=build /app/out .
 
-# Expor a porta que a aplicação vai usar
+# Expose the port that the application will use
 EXPOSE 8080
 EXPOSE 8081
 
-# Definir o ponto de entrada
+# Set the entry point
 ENTRYPOINT ["dotnet", "CineHub.dll"]

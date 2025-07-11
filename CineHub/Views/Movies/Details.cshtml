@@ -1,231 +1,480 @@
-﻿@model CineHub.Models.ViewModels.Movies.MovieDetailsViewModel
+﻿@using CineHub.Models.Enum
+@using CineHub.Extensions
+@model CineHub.Models.ViewModels.Movies.MovieDetailsViewModel
+
 @{
     ViewData["Title"] = Model.Movie.Title;
+    var backdropUrl = !string.IsNullOrEmpty(Model.Movie.BackdropPath) ? $"{Model.ImageBaseUrl}{Model.Movie.BackdropPath}" : "/images/default-backdrop.jpg";
 }
 
-<link rel="stylesheet" href="~/css/pages/movie-details.css" asp-append-version="true" />
-<link rel="stylesheet" href="~/css/shared/pagination.css" asp-append-version="true" />
+<div class="movie-details-page">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="~/css/pages/movie-details.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
 
-<div class="row">
-    <div class="col-md-4">
-        @if (!string.IsNullOrEmpty(Model.Movie.PosterPath))
-        {
-            <img src="@Model.ImageBaseUrl@Model.Movie.PosterPath"
-                 class="img-fluid rounded shadow"
-                 alt="@Model.Movie.Title"
-                 loading="lazy">
-        }
-        else
-        {
-            <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded"
-                 style="height: 600px;"
-                 role="img"
-                 aria-label="Poster não disponível para @Model.Movie.Title">
-                <span class="fs-1" aria-hidden="true">🎬</span>
-            </div>
-        }
-    </div>
-
-    <div class="col-md-8">
-        <h1 class="display-5 fw-bold">@Html.Raw(Html.Encode(Model.Movie.Title))</h1>
-
-        <div class="mb-3">
-            @if (Model.Movie.ReleaseDate.HasValue)
-            {
-                <span class="badge bg-secondary me-2"
-                      title="Data de lançamento">
-                    <span aria-hidden="true">📅</span> @Model.Movie.ReleaseDate.Value.ToString("dd/MM/yyyy")
-                </span>
-            }
-
-            @if (Model.Movie.VoteAverage > 0)
-            {
-                <span class="badge bg-warning text-dark me-2"
-                      title="Avaliação média no TMDB">
-                    <span aria-hidden="true">⭐</span> @Model.Movie.VoteAverage.ToString("F1")/10 (TMDB)
-                </span>
-            }
-
-            @if (Model.TotalUserRatings > 0)
-            {
-                <span class="badge bg-success text-white me-2"
-                      title="Avaliação média dos usuários">
-                    <span aria-hidden="true">👥</span> @Model.FormattedAverageRating/10 (@Model.TotalUserRatings avaliações dos usuários)
-                </span>
-            }
-
-            @if (Model.Movie.VoteCount > 0)
-            {
-                <span class="badge bg-info"
-                      title="Total de votos no TMDB">
-                    <span aria-hidden="true">🌐</span> @Model.Movie.VoteCount.ToString("N0") votos TMDB
-                </span>
-            }
-        </div>
-
-        @if (!string.IsNullOrEmpty(Model.Movie.Overview))
-        {
-            <div class="mb-4">
-                <h4>📝 Sinopse</h4>
-                <p class="lead">@Html.Raw(Html.Encode(Model.Movie.Overview))</p>
-            </div>
-        }
-
-        <div class="mb-4">
-            <h4>ℹ️ Informações</h4>
-            <ul class="list-unstyled">
-                <li><strong>ID TMDB:</strong> @Model.Movie.TMDbId</li>
-                @if (Model.Movie.ReleaseDate.HasValue)
-                {
-                    <li><strong>Lançamento:</strong> @Model.Movie.ReleaseDate.Value.ToString("dd/MM/yyyy")</li>
-                }
-                <li><strong>Última atualização:</strong> @Model.Movie.LastUpdated.ToString("dd/MM/yyyy HH:mm")</li>
-            </ul>
-        </div>
-
-        <div class="d-grid gap-2 d-md-flex">
-            <a asp-controller="Home" asp-action="Index"
-               class="btn btn-secondary"
-               aria-label="Voltar para lista de filmes">
-                ← Voltar para o inicio
-            </a>
-
-            <a asp-controller="Rating" asp-action="RateMovie" asp-route-movieId="@Model.Movie.Id"
-               class="btn btn-success"
-               aria-label="Avaliar o filme @Model.Movie.Title">
-                ⭐ Avaliar Filme
-            </a>
-        </div>
-    </div>
-</div>
-
-<!-- Users Review -->
-<div class="row mt-5">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center flex-wrap" id="comments-header">
-                <h4 class="mb-0 d-flex align-items-center gap-2">
-                    <span aria-hidden="true">💬</span>
-                    <span>Avaliações dos Usuários</span>
-                </h4>
-                @if (Model.Comments.TotalComments > 0)
-                {
-                    <span class="badge bg-primary mt-2 mt-md-0"
-                          title="Total de avaliações">
-                        @Model.Comments.TotalComments.ToString("N0") avaliações
-                    </span>
-                }
-            </div>
-            <div class="card-body">
-                @if (Model.Comments.Comments.Any())
-                {
-                    <div id="comments-container" role="region" aria-label="Lista de comentários">
-                        @foreach (var comment in Model.Comments.Comments)
+    <section class="movie-hero" style="background-image: url('@backdropUrl')">
+        <div class="container">
+            <div class="movie-hero-content">
+                <div class="row align-items-center">
+                    <div class="col-lg-4 col-md-5 mb-4 mb-md-0">
+                        <div class="movie-poster-wrapper">
+                            @if (!string.IsNullOrEmpty(Model.Movie.PosterPath))
+                            {
+                                <img id="moviePosterImage" src="@(Model.ImageBaseUrl + Model.Movie.PosterPath)"
+                                     class="movie-poster img-fluid" alt="Pôster de @Model.Movie.Title"
+                                     crossorigin="anonymous" loading="eager">
+                            }
+                            else
+                            {
+                                <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded"
+                                     style="height: 600px; aspect-ratio: 2/3;" role="img" aria-label="Poster não disponível">
+                                    <span class="fs-1" aria-hidden="true">🎬</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-lg-8 col-md-7">
+                        <h1 class="mb-3">@Model.Movie.Title</h1>
+                        <div class="hero-badges mb-4">
+                            @if (Model.Movie.ReleaseDate.HasValue)
+                            {
+                                <div class="hero-badge" title="Ano de lançamento"><i class="fa-solid fa-calendar-day icon"></i> @Model.Movie.ReleaseDate.Value.ToString("yyyy")</div>
+                            }
+                            @if (Model.Movie.VoteAverage > 0)
+                            {
+                                <div class="hero-badge" title="Nota do TMDB"><i class="fa-brands fa-imdb icon"></i> <span class="rating-value">@Model.Movie.VoteAverage.ToString("F1")</span> / 10</div>
+                            }
+                            @if (Model.TotalUserRatings > 0)
+                            {
+                                <div class="hero-badge" title="Nota dos usuários"><i class="fa-solid fa-users icon"></i> <span class="rating-value">@Model.FormattedAverageRating</span> / 10</div>
+                            }
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.Movie.Overview))
                         {
-                            <div class="comment-item border-bottom pb-3 mb-3"
-                                 data-comment-id="@comment.Id"
-                                 data-edited="@comment.WasUpdated.ToString().ToLower()">
-                                <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap">
-                                    <div class="mb-2 mb-md-0">
-                                        <h6 class="mb-1 fw-bold">@Html.Raw(Html.Encode(comment.UserName))</h6>
-                                        <div class="rating-numeric mb-1"
-                                             title="Avaliação: @comment.Rating/10"
-                                             role="img"
-                                             aria-label="Avaliação: @comment.Rating de 10">
-                                            <span class="badge bg-warning text-dark">
-                                                <strong>@comment.RatingDisplay</strong>
-                                            </span>
+                            <h4 class="mb-2">📝 Sinopse</h4>
+                            <p class="lead">@Model.Movie.Overview</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <a asp-controller="Rating" asp-action="RateMovie" asp-route-movieId="@Model.Movie.Id"
+       class="fab" aria-label="Avaliar o filme @Model.Movie.Title" title="Avaliar Filme">
+        <i class="fa-solid fa-star"></i>
+    </a>
+
+    <main class="main-content">
+        <div class="container">
+            @if (Model.Credits != null && Model.Credits.Any())
+            {
+                var groupedCredits = Model.Credits
+                .GroupBy(c => c.Person.TMDbId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+                var directors = Model.Credits.Where(c => c.Role.IsDirectorRole()).ToList();
+                var writers = Model.Credits.Where(c => c.Role.IsWriterRole()).ToList();
+                var producers = Model.Credits.Where(c => c.Role.IsProducerRole()).ToList();
+                var cast = Model.Credits.Where(c => c.Role.IsActorRole()).ToList();
+
+                var staff = Model.Credits.Where(c => !c.Role.IsMainRole())
+                .GroupBy(c => c.Person.TMDbId)
+                .Select(g => g.First())
+                .OrderBy(c => c.Person.Name)
+                .ToList();
+
+                @if (cast.Any())
+                {
+                    <section class="mb-5 reveal-on-scroll">
+                        <h3 class="section-title">Elenco Principal</h3>
+                        <div class="cast-carousel-container">
+                            <div class="swiper-container cast-swiper">
+                                <div class="swiper-wrapper">
+                                    @foreach (var credit in cast)
+                                    {
+                                        <div class="swiper-slide">
+                                            <div class="person-card">
+                                                <div class="person-photo-wrapper">
+                                                    @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
+                                                    {
+                                                        <img src="@(Model.ImageBaseUrl + credit.Person.ProfilePath)"
+                                                             class="person-photo" alt="@credit.Person.Name" loading="lazy">
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="person-photo avatar-placeholder"
+                                                             title="@credit.Person.Name"
+                                                             aria-label="Avatar de @credit.Person.Name"></div>
+                                                    }
+                                                </div>
+                                                <div class="person-name">@credit.Person.Name</div>
+                                                @if (!string.IsNullOrEmpty(credit.Character))
+                                                {
+                                                    <div class="person-role">como @credit.Character</div>
+                                                }
+                                                @{
+                                                    var otherRoles = groupedCredits.ContainsKey(credit.Person.TMDbId)
+                                                    ? groupedCredits[credit.Person.TMDbId]
+                                                    .Where(r => !r.Role.IsActorRole())
+                                                    .Select(r => r.Role.GetDisplayName())
+                                                    .ToList()
+                                                    : new List<string>();
+                                                }
+                                                @if (otherRoles.Any())
+                                                {
+                                                    <div class="person-additional-roles">
+                                                        <small class="text-muted">Também: @string.Join(", ", otherRoles)</small>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="swiper-button-prev cast-nav-prev" title="Anterior">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </div>
+                                <div class="swiper-button-next cast-nav-next" title="Próximo">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                }
+
+                <div class="row">
+                    @if (directors.Any())
+                    {
+                        <div class="col-lg-4 mb-5">
+                            <section class="reveal-on-scroll">
+                                <h3 class="section-title">Direção</h3>
+                                <div class="crew-list">
+                                    @foreach (var credit in directors)
+                                    {
+                                        <div class="crew-member d-flex align-items-center mb-3">
+                                            <div class="crew-photo-wrapper me-3">
+                                                @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
+                                                {
+                                                    <img src="@(Model.ImageBaseUrl + credit.Person.ProfilePath)"
+                                                         class="crew-photo rounded-circle" alt="@credit.Person.Name" loading="lazy"
+                                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                                }
+                                                else
+                                                {
+                                                    <div class="crew-photo avatar-placeholder small"
+                                                         style="width: 60px; height: 60px;"
+                                                         title="@credit.Person.Name"
+                                                         aria-label="Avatar de @credit.Person.Name"></div>
+                                                }
+                                            </div>
+                                            <div class="crew-info">
+                                                <div class="crew-name fw-bold">@credit.Person.Name</div>
+                                                <div class="crew-role">
+                                                    <small class="text-muted">@credit.Role.GetDisplayName()</small>
+                                                </div>
+                                                @{
+                                                    var otherRoles = groupedCredits.ContainsKey(credit.Person.TMDbId)
+                                                    ? groupedCredits[credit.Person.TMDbId]
+                                                    .Where(r => !r.Role.IsDirectorRole())
+                                                    .Select(r => r.Role.GetDisplayName())
+                                                    .ToList()
+                                                    : new List<string>();
+                                                }
+                                                @if (otherRoles.Any())
+                                                {
+                                                    <div class="crew-additional-roles">
+                                                        <small class="text-muted">Também: @string.Join(", ", otherRoles)</small>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </section>
+                        </div>
+                    }
+
+                    @if (writers.Any())
+                    {
+                        <div class="col-lg-4 mb-5">
+                            <section class="reveal-on-scroll">
+                                <h3 class="section-title">Roteiro</h3>
+                                <div class="crew-list">
+                                    @foreach (var credit in writers)
+                                    {
+                                        <div class="crew-member d-flex align-items-center mb-3">
+                                            <div class="crew-photo-wrapper me-3">
+                                                @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
+                                                {
+                                                    <img src="@(Model.ImageBaseUrl + credit.Person.ProfilePath)"
+                                                         class="crew-photo rounded-circle" alt="@credit.Person.Name" loading="lazy"
+                                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                                }
+                                                else
+                                                {
+                                                    <div class="crew-photo avatar-placeholder small"
+                                                         style="width: 60px; height: 60px;"
+                                                         title="@credit.Person.Name"
+                                                         aria-label="Avatar de @credit.Person.Name"></div>
+                                                }
+                                            </div>
+                                            <div class="crew-info">
+                                                <div class="crew-name fw-bold">@credit.Person.Name</div>
+                                                <div class="crew-role">
+                                                    <small class="text-muted">@credit.Role.GetDisplayName()</small>
+                                                </div>
+                                                @{
+                                                    var otherRoles = groupedCredits.ContainsKey(credit.Person.TMDbId)
+                                                    ? groupedCredits[credit.Person.TMDbId]
+                                                    .Where(r => !r.Role.IsWriterRole())
+                                                    .Select(r => r.Role.GetDisplayName())
+                                                    .ToList()
+                                                    : new List<string>();
+                                                }
+                                                @if (otherRoles.Any())
+                                                {
+                                                    <div class="crew-additional-roles">
+                                                        <small class="text-muted">Também: @string.Join(", ", otherRoles)</small>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </section>
+                        </div>
+                    }
+
+                    @if (producers.Any())
+                    {
+                        <div class="col-lg-4 mb-5">
+                            <section class="reveal-on-scroll">
+                                <h3 class="section-title">Produção</h3>
+                                <div class="crew-list">
+                                    @foreach (var credit in producers)
+                                    {
+                                        <div class="crew-member d-flex align-items-center mb-3">
+                                            <div class="crew-photo-wrapper me-3">
+                                                @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
+                                                {
+                                                    <img src="@(Model.ImageBaseUrl + credit.Person.ProfilePath)"
+                                                         class="crew-photo rounded-circle" alt="@credit.Person.Name" loading="lazy"
+                                                         style="width: 60px; height: 60px; object-fit: cover;">
+                                                }
+                                                else
+                                                {
+                                                    <div class="crew-photo avatar-placeholder small"
+                                                         style="width: 60px; height: 60px;"
+                                                         title="@credit.Person.Name"
+                                                         aria-label="Avatar de @credit.Person.Name"></div>
+                                                }
+                                            </div>
+                                            <div class="crew-info">
+                                                <div class="crew-name fw-bold">@credit.Person.Name</div>
+                                                <div class="crew-role">
+                                                    <small class="text-muted">@credit.Role.GetDisplayName()</small>
+                                                </div>
+                                                @{
+                                                    var otherRoles = groupedCredits.ContainsKey(credit.Person.TMDbId)
+                                                    ? groupedCredits[credit.Person.TMDbId]
+                                                    .Where(r => !r.Role.IsProducerRole())
+                                                    .Select(r => r.Role.GetDisplayName())
+                                                    .ToList()
+                                                    : new List<string>();
+                                                }
+                                                @if (otherRoles.Any())
+                                                {
+                                                    <div class="crew-additional-roles">
+                                                        <small class="text-muted">Também: @string.Join(", ", otherRoles)</small>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </section>
+                        </div>
+                    }
+                </div>
+
+                @if (staff.Any())
+                {
+                    <section class="mb-3 reveal-on-scroll">
+                        <div class="staff-section">
+                            <h3 class="section-title">Staff</h3>
+                            <div class="staff-container">
+                                <div class="staff-grid" id="staffGrid">
+                                    @for (int i = 0; i < staff.Count; i++)
+                                    {
+                                        var credit = staff[i];
+                                        var isInitiallyVisible = i < 4;
+                                        <div class="staff-member @(isInitiallyVisible ? "staff-visible" : "staff-hidden")" data-staff-index="@i">
+                                            <div class="staff-member-content d-flex align-items-center">
+                                                <div class="staff-photo-wrapper me-3">
+                                                    @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
+                                                    {
+                                                        <img src="@(Model.ImageBaseUrl + credit.Person.ProfilePath)" class="staff-photo rounded-circle" alt="@credit.Person.Name" loading="lazy">
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="staff-photo avatar-placeholder small" title="@credit.Person.Name" aria-label="Avatar de @credit.Person.Name"></div>
+                                                    }
+                                                </div>
+                                                <div class="staff-info">
+                                                    <div class="staff-name fw-bold">@credit.Person.Name</div>
+                                                    <div class="staff-role">
+                                                        <small class="text-muted">@credit.Role.GetDisplayName()</small>
+                                                    </div>
+                                                    @{
+                                                        var allRoles = groupedCredits.ContainsKey(credit.Person.TMDbId)
+                                                        ? groupedCredits[credit.Person.TMDbId]
+                                                        .Where(r => !r.Role.IsMainRole())
+                                                        .Select(r => r.Role.GetDisplayName())
+                                                        .Distinct()
+                                                        .ToList()
+                                                        : new List<string>();
+                                                    }
+                                                    @if (allRoles.Count > 1)
+                                                    {
+                                                        <div class="staff-additional-roles">
+                                                            <small class="text-muted">@string.Join(", ", allRoles)</small>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                @if (staff.Count > 4)
+                                {
+                                    <div class="staff-toggle-container text-center mt-3">
+                                        <button type="button" class="staff-toggle-btn" id="staffToggleBtn" aria-expanded="false" aria-controls="staffGrid" title="Mostrar mais membros da equipe">
+                                            <i class="fa-solid fa-chevron-down staff-toggle-icon"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </section>
+                }
+            }
+
+            <section id="comments-section" class="reveal-on-scroll">
+                <h3 class="section-title">Avaliações dos Usuários</h3>
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                        @if (Model.Comments.TotalComments > 0)
+                        {
+                            <span class="badge bg-light text-dark mt-2 mt-md-0"
+                                  title="Total de avaliações">
+                                @Model.Comments.TotalComments.ToString("N0") avaliações
+                            </span>
+                        }
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Comments.Comments.Any())
+                        {
+                            <div id="comments-container" role="region" aria-label="Lista de comentários">
+                                @foreach (var comment in Model.Comments.Comments)
+                                {
+                                    <div class="comment-item border-bottom pb-3 mb-3"
+                                         data-comment-id="@comment.Id"
+                                         data-edited="@comment.WasUpdated.ToString().ToLower()">
+                                        <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap">
+                                            <div class="mb-2 mb-md-0">
+                                                <h6 class="mb-1 fw-bold">@Html.Raw(Html.Encode(comment.UserName))</h6>
+                                                <div class="rating-numeric mb-1"
+                                                     title="Avaliação: @comment.Rating/10"
+                                                     role="img"
+                                                     aria-label="Avaliação: @comment.Rating de 10">
+                                                    <span class="badge bg-warning text-dark">
+                                                        <strong>@comment.RatingDisplay</strong>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <small class="text-muted">
+                                                    @if (comment.WasUpdated)
+                                                    {
+                                                        <span title="Criado em @comment.FormattedCreatedDate">
+                                                            <span class="d-none d-sm-inline">Editado:</span>
+                                                            <span class="d-sm-none">Ed:</span>
+                                                            @comment.FormattedUpdatedDate
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>@comment.FormattedCreatedDate</span>
+                                                    }
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <div class="comment-text">
+                                            <p class="comment-text">@comment.Comment</p>
                                         </div>
                                     </div>
-                                    <div class="text-end">
-                                        <small class="text-muted">
-                                            @if (comment.WasUpdated)
-                                            {
-                                                <span title="Criado em @comment.FormattedCreatedDate">
-                                                    <span class="d-none d-sm-inline">Editado:</span>
-                                                    <span class="d-sm-none">Ed:</span>
-                                                    @comment.FormattedUpdatedDate
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span>@comment.FormattedCreatedDate</span>
-                                            }
-                                        </small>
-                                    </div>
+                                }
+                            </div>
+
+                            @if (Model.Comments.TotalPages > 1)
+                            {
+                                <nav aria-label="Navegação de páginas de comentários" class="mt-5 pagination-container">
+                                    <ul class="pagination justify-content-center flex-wrap">
+                                        <li class="page-item @(Model.Comments.CurrentPage <= 1 ? "disabled" : "")">
+                                            <a class="page-link"
+                                               href="?page=@(Model.Comments.CurrentPage - 1)"
+                                               aria-label="Página anterior"
+                                            @(Model.Comments.CurrentPage <= 1 ? "tabindex=\"-1\"" : "")>
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                        @for (int i = Math.Max(1, Model.Comments.CurrentPage - 2); i <= Math.Min(Model.Comments.TotalPages, Model.Comments.CurrentPage + 2); i++)
+                                        {
+                                            <li class="page-item @(i == Model.Comments.CurrentPage ? "active" : "")">
+                                                <a class="page-link page-number"
+                                                   href="?page=@i"
+                                                   aria-label="@(i == Model.Comments.CurrentPage ? "Página atual, " : "Ir para ")página @i"
+                                                @(i == Model.Comments.CurrentPage ? "aria-current=\"page\"" : "")>
+                                                    @i
+                                                </a>
+                                            </li>
+                                        }
+                                        <li class="page-item @(Model.Comments.CurrentPage >= Model.Comments.TotalPages ? "disabled" : "")">
+                                            <a class="page-link"
+                                               href="?page=@(Model.Comments.CurrentPage + 1)"
+                                               aria-label="Próxima página"
+                                            @(Model.Comments.CurrentPage >= Model.Comments.TotalPages ? "tabindex=\"-1\"" : "")>
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-4 empty-state" role="region" aria-label="Nenhuma avaliação disponível">
+                                <div class="mb-3">
+                                    <span class="fs-1 empty-icon" aria-hidden="true">📝</span>
                                 </div>
-                                <div class="comment-text">
-                                    @Html.Raw(Html.Encode(comment.Comment).Replace("\n", "<br>"))
-                                </div>
+                                <h5 class="text-muted">Nenhuma avaliação ainda</h5>
+                                <p class="text-muted">Seja o primeiro a avaliar este filme!</p>
+                                <a asp-controller="Rating" asp-action="RateMovie" asp-route-movieId="@Model.Movie.Id"
+                                   class="btn btn-primary"
+                                   aria-label="Avaliar o filme @Model.Movie.Title agora">
+                                    Avaliar Agora
+                                </a>
                             </div>
                         }
                     </div>
-
-                    @if (Model.Comments.TotalPages > 1)
-                    {
-                        <nav aria-label="Navegação de páginas de comentários" class="mt-5" id="pagination-container">
-                            <ul class="pagination justify-content-center flex-wrap">
-                                @* Página anterior *@
-                                <li class="page-item @(Model.Comments.CurrentPage <= 1 ? "disabled" : "")">
-                                    <a class="page-link"
-                                       href="#"
-                                       onclick="@(Model.Comments.CurrentPage <= 1 ? "return false;" : $"loadComments({Model.Comments.CurrentPage - 1}); return false;")"
-                                       aria-label="Página anterior"
-                                    @(Model.Comments.CurrentPage <= 1 ? "tabindex=\"-1\"" : "")>
-                                        <span aria-hidden="true">&laquo;</span>
-                                        <span class="d-none d-sm-inline ms-1"></span>
-                                    </a>
-                                </li>
-
-                                @* Páginas numeradas *@
-                                @for (int i = Math.Max(1, Model.Comments.CurrentPage - 2); i <= Math.Min(Model.Comments.TotalPages, Model.Comments.CurrentPage + 2); i++)
-                                {
-                                    <li class="page-item @(i == Model.Comments.CurrentPage ? "active" : "")">
-                                        <a class="page-link page-number"
-                                           href="#"
-                                           onclick="loadComments(@i); return false;"
-                                           aria-label="@(i == Model.Comments.CurrentPage ? "Página atual, " : "Ir para ")página @i"
-                                        @(i == Model.Comments.CurrentPage ? "aria-current=\"page\"" : "")>
-                                            @i
-                                        </a>
-                                    </li>
-                                }
-
-                                @* Próxima página *@
-                                <li class="page-item @(Model.Comments.CurrentPage >= Model.Comments.TotalPages ? "disabled" : "")">
-                                    <a class="page-link"
-                                       href="#"
-                                       onclick="@(Model.Comments.CurrentPage >= Model.Comments.TotalPages ? "return false;" : $"loadComments({Model.Comments.CurrentPage + 1}); return false;")"
-                                       aria-label="Próxima página"
-                                    @(Model.Comments.CurrentPage >= Model.Comments.TotalPages ? "tabindex=\"-1\"" : "")>
-                                        <span class="d-none d-sm-inline me-1"></span>
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                    }
-                }
-                else
-                {
-                    <div class="text-center py-4 empty-state" role="region" aria-label="Nenhuma avaliação disponível">
-                        <div class="mb-3">
-                            <span class="fs-1 empty-icon" aria-hidden="true">📝</span>
-                        </div>
-                        <h5 class="text-muted">Nenhuma avaliação ainda</h5>
-                        <p class="text-muted">Seja o primeiro a avaliar este filme!</p>
-                        <a asp-controller="Rating" asp-action="RateMovie" asp-route-movieId="@Model.Movie.Id"
-                           class="btn btn-primary"
-                           aria-label="Avaliar o filme @Model.Movie.Title agora">
-                            ⭐ Avaliar Agora
-                        </a>
-                    </div>
-                }
-            </div>
+                </div>
+            </section>
         </div>
-    </div>
+    </main>
 </div>
 
 @section Scripts {
+    <script src="https://unpkg.com/colorthief@2.3.2/dist/color-thief.umd.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script src="~/js/pages/movie-details.js" asp-append-version="true"></script>
 }

@@ -115,3 +115,26 @@ class AjaxPaginator {
         }
     }
 }
+
+// Convenience function to initialize AJAX pagination
+// containerSelector: CSS selector for the main container
+// cardAnimationClass: CSS class to animate new items
+// Returns: AjaxPaginator instance for external use if needed
+function initializeAjaxPagination(containerSelector, cardAnimationClass) {
+    const paginator = new AjaxPaginator(containerSelector, cardAnimationClass);
+    paginator.initialize();
+    return paginator;
+}
+
+// Auto-initialize for containers with specific class on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Automatically initialize for containers with class 'ajax-pagination-container'
+    const containers = document.querySelectorAll('.ajax-pagination-container');
+
+    containers.forEach(container => {
+        const containerId = `#${container.id}`;
+        const animationClass = container.dataset.animationClass || '.content-card-animation';
+
+        initializeAjaxPagination(containerId, animationClass);
+    });
+});

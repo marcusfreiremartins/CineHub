@@ -35,12 +35,12 @@
                             </div>
                         }
 
-                        <!-- Badge de favorito (sempre ativo) -->
+                        <!-- Favorite badge (always active) -->
                         <div class="movie-favorite-badge-active">
                             ❤️
                         </div>
 
-                        <!-- Overlay de hover que aparece apenas no hover da imagem -->
+                        <!-- Hover overlay that appears only on image hover -->
                         <div class="movie-hover-overlay">
                             <button class="movie-heart-remove-btn"
                                     data-movie-id="@favorite.MovieId"
@@ -62,7 +62,7 @@
                             }
                         </div>
 
-                        <!-- Data de quando foi favoritado -->
+                        <!-- Date when it was favorited -->
                         <div class="movie-favorite-date">
                             <small class="text-muted">
                                 <i class="fas fa-heart me-1"></i>
@@ -70,7 +70,7 @@
                             </small>
                         </div>
 
-                        <!-- Área de botões -->
+                        <!-- Buttons area -->
                         <div class="movie-actions-buttons">
                             <a asp-controller="Movies" asp-action="Details" asp-route-id="@favorite.MovieId"
                                class="movie-btn-global movie-btn-primary">

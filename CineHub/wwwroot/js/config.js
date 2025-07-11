@@ -21,7 +21,7 @@ const APP_CONFIG = {
         HEADERS: {
             'X-Requested-With': 'XMLHttpRequest',
             'Content-Type': 'application/json',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,/;q=0.8'
         }
     },
     // API endpoints (legacy compatibility)
@@ -81,6 +81,5 @@ const APP_CONFIG = {
         INTERSECTION_ROOT_MARGIN: '50px'
     }
 };
-
 // Make this config object available globally
 window.APP_CONFIG = APP_CONFIG;

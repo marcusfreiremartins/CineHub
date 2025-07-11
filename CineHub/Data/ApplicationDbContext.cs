@@ -11,6 +11,8 @@ namespace CineHub.Data
         public DbSet<User> Users { get; set; }
         public DbSet<UserRating> UserRatings { get; set; }
         public DbSet<UserFavorite> UserFavorites { get; set; }
+        public DbSet<Person> People { get; set; }
+        public DbSet<MoviePerson> MoviePeople { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -102,6 +104,41 @@ namespace CineHub.Data
                 .WithMany()
                 .HasForeignKey(uf => uf.MovieId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Person
+            modelBuilder.Entity<Person>()
+                .HasIndex(p => p.TMDbId)
+                .IsUnique();
+
+            modelBuilder.Entity<Person>()
+                .Property(e => e.Birthday)
+                .HasColumnType("timestamp without time zone");
+
+            modelBuilder.Entity<Person>()
+                .Property(e => e.Deathday)
+                .HasColumnType("timestamp without time zone");
+
+            modelBuilder.Entity<Person>()
+                .Property(e => e.LastUpdated)
+                .HasColumnType("timestamp without time zone")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            // MoviePerson
+            modelBuilder.Entity<MoviePerson>()
+                .HasKey(mp => new { mp.MovieId, mp.PersonId, mp.Role });
+
+            modelBuilder.Entity<MoviePerson>()
+                .HasOne(mp => mp.Movie)
+                .WithMany()
+                .HasForeignKey(mp => mp.MovieId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MoviePerson>()
+                .HasOne(mp => mp.Person)
+                .WithMany()
+                .HasForeignKey(mp => mp.PersonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
         }
     }
 }

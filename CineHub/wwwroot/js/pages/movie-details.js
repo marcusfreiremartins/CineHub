@@ -1,327 +1,483 @@
-﻿// Main class to manage movie details
+﻿// Simplified Movie Details Manager
 class MovieDetailsManager {
     constructor() {
-        this.isLoading = false;
-        this.currentMovieId = null;
-        this.init();
+        this.swiperInstances = []
+        this.observers = new Map()
+        this.eventListeners = []
+        this.isInitialized = false
+        this.init()
     }
 
-    init() {
+    async init() {
         try {
-            this.currentMovieId = UrlUtils.extractIdFromUrl();
-            if (!this.currentMovieId) {
-                throw new Error(APP_CONFIG.ERROR_MESSAGES.MOVIE_ID_NOT_FOUND);
-            }
+            console.log("Initializing MovieDetailsManager...")
 
-            this.setupHistoryState();
-            this.attachEventListeners();
-            this.initializeFeatures();
+            // Initialize core features
+            await this.initializeTheme()
+            await this.initializeCarousels()
+            await this.initializeScrollAnimations()
+            await this.initializeParallax()
+            await this.initializeComments()
+            await this.initializeStaffSection()
 
-            console.log('MovieDetailsManager initialized successfully');
+            this.isInitialized = true
+            console.log("MovieDetailsManager initialized successfully")
+
         } catch (error) {
-            console.error('Initialization error:', error);
-            this.showErrorState(APP_CONFIG.ERROR_MESSAGES.INITIALIZATION_ERROR);
+            console.error("Initialization error:", error)
         }
     }
 
-    // Setup initial history state
-    setupHistoryState() {
-        const currentPage = UrlUtils.getCurrentPage();
-        if (window.history?.replaceState) {
-            window.history.replaceState({ page: currentPage }, '', window.location.href);
-        }
-    }
+    // Theme initialization using ColorThief
+    async initializeTheme() {
+        const poster = document.querySelector("#moviePosterImage")
+        if (!poster || typeof ColorThief === "undefined") return
 
-    // Attach all necessary event listeners
-    attachEventListeners() {
-        this.attachPaginationListeners();
-        window.addEventListener('popstate', this.handlePopState.bind(this));
-    }
+        const applyTheme = (img) => {
+            try {
+                const colorThief = new ColorThief()
+                const palette = colorThief.getPalette(img, 3)
+                const [primary, secondary, accent] = palette
 
-    // Load comments for a specific page
-    async loadComments(page) {
-        if (this.isLoading || !this.validatePage(page)) return;
+                // Apply CSS custom properties
+                const root = document.documentElement
+                root.style.setProperty("--theme-primary", `rgb(${primary.join(",")})`)
+                root.style.setProperty("--theme-secondary", secondary ? `rgb(${secondary.join(",")})` : `rgb(${primary.join(",")})`)
+                root.style.setProperty("--theme-accent", accent ? `rgb(${accent.join(",")})` : `rgb(${primary.join(",")})`)
+                root.style.setProperty("--theme-glow", `rgba(${primary.join(",")}, 0.3)`)
+                root.style.setProperty("--theme-transition", "all 800ms ease-in-out")
 
-        this.isLoading = true;
-        const container = document.querySelector(APP_CONFIG.SELECTORS.COMMENTS_CONTAINER);
-
-        if (!container) {
-            console.error(APP_CONFIG.ERROR_MESSAGES.CONTAINER_NOT_FOUND);
-            this.showErrorState(APP_CONFIG.ERROR_MESSAGES.CONTAINER_NOT_FOUND);
-            return;
-        }
-
-        const hasContent = container.children.length > 0 && !container.querySelector('.spinner-border');
-
-        try {
-            if (hasContent) {
-                await AnimationUtils.fadeElement(container, 'out');
+            } catch (error) {
+                console.error("ColorThief error:", error)
             }
+        }
 
-            this.showLoadingState();
-            const html = await this.fetchCommentsPage(page);
-            await this.updateCommentsContent(html, container);
-
-            this.updatePagination(html);
-            UrlUtils.updateUrl({ page });
-            ScrollUtils.scrollToElement(APP_CONFIG.SELECTORS.COMMENTS_HEADER);
-
-            setTimeout(() => this.initializeCommentFeatures(), 500);
-        } catch (error) {
-            console.error('Error loading comments:', error);
-            this.showErrorState(HttpUtils.getErrorMessage(error));
-            AnimationUtils.fadeElement(container, 'in');
-        } finally {
-            this.isLoading = false;
+        if (poster.complete) {
+            applyTheme(poster)
+        } else {
+            poster.addEventListener("load", () => applyTheme(poster))
         }
     }
 
-    // Validate page number
-    validatePage(page) {
-        if (!page || page < 1) {
-            console.error('Invalid page number:', page);
-            return false;
+    // Initialize Swiper carousels
+    async initializeCarousels() {
+        if (typeof Swiper === "undefined") return
+
+        // Cast carousel
+        const castContainer = document.querySelector(".cast-swiper")
+        if (castContainer) {
+            const castSwiper = new Swiper(castContainer, {
+                slidesPerView: "auto",
+                spaceBetween: 20,
+                grabCursor: true,
+                lazy: { loadPrevNext: true },
+                slidesPerGroup: 4,
+                navigation: {
+                    nextEl: ".cast-nav-next",
+                    prevEl: ".cast-nav-prev",
+                },
+                breakpoints: {
+                    320: { slidesPerView: 2, spaceBetween: 15, slidesPerGroup: 2 },
+                    480: { slidesPerView: 3, spaceBetween: 15, slidesPerGroup: 3 },
+                    768: { slidesPerView: 4, spaceBetween: 20, slidesPerGroup: 4 },
+                    992: { slidesPerView: 5, spaceBetween: 20, slidesPerGroup: 4 },
+                    1200: { slidesPerView: 6, spaceBetween: 20, slidesPerGroup: 4 },
+                },
+                on: {
+                    init: function () { updateNavButtons(this) },
+                    slideChange: function () { updateNavButtons(this) }
+                }
+            })
+            this.swiperInstances.push(castSwiper)
         }
-        return true;
-    }
 
-    // Request to fetch comments
-    async fetchCommentsPage(page) {
-        const url = `${APP_CONFIG.API_ENDPOINTS.MOVIE_DETAILS}/${this.currentMovieId}?page=${page}`;
-        const response = await HttpUtils.fetchWithDefaults(url);
-        return await response.text();
-    }
+        // Other carousels
+        const otherContainers = document.querySelectorAll(".swiper-container:not(.cast-swiper)")
+        otherContainers.forEach(container => {
+            const swiper = new Swiper(container, {
+                slidesPerView: "auto",
+                spaceBetween: 20,
+                grabCursor: true,
+                lazy: { loadPrevNext: true },
+                pagination: {
+                    el: container.querySelector(".swiper-pagination"),
+                    clickable: true,
+                },
+                breakpoints: {
+                    320: { slidesPerView: 2, spaceBetween: 15 },
+                    576: { slidesPerView: 3, spaceBetween: 20 },
+                    768: { slidesPerView: 4, spaceBetween: 25 },
+                    992: { slidesPerView: 5, spaceBetween: 30 },
+                    1200: { slidesPerView: 6, spaceBetween: 30 },
+                }
+            })
+            this.swiperInstances.push(swiper)
+        })
 
-    // Update the comments content
-    async updateCommentsContent(html, container) {
-        const doc = HttpUtils.parseHtmlResponse(html);
-        const newContainer = doc.querySelector(APP_CONFIG.SELECTORS.COMMENTS_CONTAINER);
+        // Navigation button helper
+        function updateNavButtons(swiperInstance) {
+            const prevBtn = document.querySelector(".cast-nav-prev")
+            const nextBtn = document.querySelector(".cast-nav-next")
 
-        if (!newContainer) {
-            throw new Error(APP_CONFIG.ERROR_MESSAGES.COMMENTS_SECTION_NOT_FOUND);
-        }
-
-        const sanitizedContent = SecurityUtils.sanitizeHtmlContent(newContainer.innerHTML);
-        container.innerHTML = sanitizedContent;
-
-        await this.animateNewComments(container);
-    }
-
-    // Animate new comments
-    async animateNewComments(container) {
-        const commentItems = container.querySelectorAll(APP_CONFIG.SELECTORS.COMMENT_ITEM);
-
-        commentItems.forEach(item => {
-            item.style.cssText = 'opacity: 0; transform: translateY(15px);';
-        });
-
-        await AnimationUtils.fadeElement(container, 'in');
-        AnimationUtils.staggerElements(commentItems);
-    }
-
-    // Update pagination
-    updatePagination(html) {
-        const paginationContainer = document.querySelector(APP_CONFIG.SELECTORS.PAGINATION_CONTAINER);
-        if (!paginationContainer) return;
-
-        const doc = HttpUtils.parseHtmlResponse(html);
-        const newPagination = doc.querySelector(APP_CONFIG.SELECTORS.PAGINATION_CONTAINER);
-
-        if (newPagination) {
-            const paginationParent = paginationContainer.parentNode;
-            const newPaginationParent = newPagination.parentNode;
-
-            if (paginationParent && newPaginationParent) {
-                paginationParent.innerHTML = newPaginationParent.innerHTML;
-                this.attachPaginationListeners();
+            if (prevBtn) {
+                prevBtn.style.opacity = swiperInstance.isBeginning ? "0.3" : "1"
+                prevBtn.style.pointerEvents = swiperInstance.isBeginning ? "none" : "auto"
+            }
+            if (nextBtn) {
+                nextBtn.style.opacity = swiperInstance.isEnd ? "0.3" : "1"
+                nextBtn.style.pointerEvents = swiperInstance.isEnd ? "none" : "auto"
             }
         }
     }
 
-    // Attach pagination link listeners
-    attachPaginationListeners() {
-        const links = document.querySelectorAll(APP_CONFIG.SELECTORS.PAGINATION_LINKS);
+    // Scroll animations with Intersection Observer
+    async initializeScrollAnimations() {
+        const targets = document.querySelectorAll(".reveal-on-scroll")
+        if (!targets.length) return
 
-        links.forEach(link => {
-            const newLink = this.cloneElementWithoutListeners(link);
-            newLink.addEventListener('click', this.handlePaginationClick.bind(this));
-            this.addAccessibilityFeatures(newLink);
-        });
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        entry.target.classList.add("is-visible")
+                    }, index * APP_CONFIG.TIMING.ITEM_STAGGER_DELAY)
+                    observer.unobserve(entry.target)
+                }
+            })
+        }, {
+            threshold: APP_CONFIG.ANIMATION.INTERSECTION_THRESHOLD,
+            rootMargin: APP_CONFIG.ANIMATION.INTERSECTION_ROOT_MARGIN
+        })
+
+        targets.forEach(target => observer.observe(target))
+        this.observers.set("scroll-animations", observer)
     }
 
-    // Clone element without previous listeners
-    cloneElementWithoutListeners(element) {
-        const newElement = element.cloneNode(true);
-        element.parentNode.replaceChild(newElement, element);
-        return newElement;
-    }
+    // Parallax effect with optimized performance
+    async initializeParallax() {
+        const hero = document.querySelector(".movie-hero")
+        if (!hero) return
 
-    // Handle pagination click
-    handlePaginationClick(event) {
-        event.preventDefault();
+        // Use CSS custom properties for better performance
+        let ticking = false
 
-        if (this.isLoading) {
-            console.log('Loading in progress, ignoring click');
-            return;
+        const handleScroll = () => {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    const scrollY = window.scrollY
+                    // Use CSS custom property instead of direct transform
+                    hero.style.setProperty('--scroll-y', `${scrollY * 0.5}px`)
+                    ticking = false
+                })
+                ticking = true
+            }
         }
 
-        const page = this.extractPageFromElement(event.target);
-        if (this.validatePage(page)) {
-            this.loadComments(page);
-        }
+        // Use passive listener for better scroll performance
+        window.addEventListener("scroll", handleScroll, { passive: true })
+        this.eventListeners.push({ event: "scroll", handler: handleScroll })
+
+        // Add CSS support for the parallax effect
+        this.addParallaxCSS()
     }
 
-    // Extract page number from element
-    extractPageFromElement(element) {
-        const onclickAttr = element.getAttribute('onclick');
+    // Add CSS for optimized parallax effect
+    addParallaxCSS() {
+        const styleId = 'parallax-optimization'
+        if (document.getElementById(styleId)) return
 
-        if (onclickAttr) {
-            const match = onclickAttr.match(/loadComments\((\d+)\)/);
-            if (match) return parseInt(match[1]);
-        }
-
-        const href = element.getAttribute('href');
-        if (href?.includes('page=')) {
-            const urlParams = new URLSearchParams(href.split('?')[1]);
-            return parseInt(urlParams.get('page')) || 1;
-        }
-
-        return 1;
+        const style = document.createElement('style')
+        style.id = styleId
+        style.textContent = `
+            .movie-hero {
+                transform: translateY(var(--scroll-y, 0px));
+                will-change: transform;
+                /* Use CSS containment for better performance */
+                contain: layout style paint;
+            }
+            
+            /* Enable hardware acceleration and optimize for scroll performance */
+            @media (prefers-reduced-motion: no-preference) {
+                .movie-hero {
+                    /* Use translate3d for hardware acceleration */
+                    transform: translate3d(0, var(--scroll-y, 0px), 0);
+                }
+            }
+            
+            /* Respect user's motion preferences */
+            @media (prefers-reduced-motion: reduce) {
+                .movie-hero {
+                    transform: none !important;
+                }
+            }
+        `
+        document.head.appendChild(style)
     }
 
-    // Add accessibility enhancements
-    addAccessibilityFeatures(element) {
-        if (element.classList.contains('disabled')) return;
-
-        AccessibilityUtils.addHoverEffects(element);
-        AccessibilityUtils.addKeyboardNavigation(element, () => element.click());
-    }
-
-    // Handle browser history navigation
-    handlePopState(event) {
-        const page = event.state?.page || UrlUtils.getCurrentPage();
-        if (page > 1) {
-            this.loadComments(page);
-        }
-    }
-
-    // Initialize comment features
-    initializeCommentFeatures() {
-        this.initializeExpandableComments();
-    }
-
-    // Initialize expandable comment logic
-    initializeExpandableComments() {
-        const commentTexts = document.querySelectorAll(APP_CONFIG.SELECTORS.COMMENT_TEXT);
+    // Initialize expandable comments
+    async initializeComments() {
+        const commentTexts = document.querySelectorAll(".comment-text p")
+        if (!commentTexts.length) return
 
         commentTexts.forEach(textElement => {
-            const textContent = textElement.textContent || textElement.innerText;
-
+            const textContent = textElement.textContent || textElement.innerText
             if (textContent.length > APP_CONFIG.LIMITS.COMMENT_PREVIEW_LENGTH) {
-                new ExpandableComment(textElement, textContent);
+                new ExpandableComment(textElement, textContent)
             }
-        });
+        })
     }
 
-    // Initialize other features
-    initializeFeatures() {
-        AccessibilityUtils.enhanceRatingElements();
-        AccessibilityUtils.addTooltips();
-        this.initializeCommentFeatures();
+    // Staff section toggle
+    async initializeStaffSection() {
+        const toggleBtn = document.querySelector("#staffToggleBtn")
+        const staffGrid = document.querySelector("#staffGrid")
+        const toggleContainer = document.querySelector(".staff-toggle-container")
+        const hiddenMembers = document.querySelectorAll(".staff-hidden")
+
+        if (!toggleBtn || !staffGrid || !hiddenMembers.length || !toggleContainer) return
+
+        let isExpanded = false
+
+        // Function to calculate the button position after the first 4 members
+        const updateButtonPosition = () => {
+            if (isExpanded) {
+                // When expanded, position the button at the end normally
+                toggleContainer.classList.remove("initial-position")
+                toggleContainer.classList.add("expanded-position")
+                staffGrid.classList.remove("has-toggle-button")
+                staffGrid.classList.add("expanded")
+            } else {
+                // When collapsed, position the button after the first 4 members
+                const visibleMembers = staffGrid.querySelectorAll('.staff-member.staff-visible')
+                const initialMembers = Array.from(staffGrid.querySelectorAll('.staff-member')).slice(0, 4)
+
+                if (initialMembers.length > 0) {
+                    // Find the last visible initial member
+                    const lastVisibleInitialMember = initialMembers[initialMembers.length - 1]
+                    const rect = lastVisibleInitialMember.getBoundingClientRect()
+                    const containerRect = staffGrid.getBoundingClientRect()
+
+                    // Calculate the relative position within the container
+                    const relativeTop = rect.bottom - containerRect.top + 20
+
+                    toggleContainer.classList.remove("expanded-position")
+                    toggleContainer.classList.add("initial-position")
+                    toggleContainer.style.top = `${relativeTop}px`
+                    staffGrid.classList.add("has-toggle-button")
+                    staffGrid.classList.remove("expanded")
+                }
+            }
+        }
+
+        // Initialize the button position
+        if (toggleContainer) {
+            setTimeout(updateButtonPosition, 100)
+        } else {
+            // If there's no button, ensure there's no extra spacing
+            staffGrid.classList.remove("has-toggle-button")
+        }
+
+        // Update button position when the window is resized
+        window.addEventListener('resize', updateButtonPosition)
+
+        const toggleStaff = () => {
+            isExpanded = !isExpanded
+            const icon = toggleBtn.querySelector(".staff-toggle-icon")
+
+            // Convert NodeList to Array to use reverse()
+            const hiddenMembersArray = Array.from(hiddenMembers)
+
+            if (isExpanded) {
+                // Expand – show hidden members (from first to last)
+                hiddenMembersArray.forEach((member, index) => {
+                    setTimeout(() => {
+                        // Remove the hidden class and add expanding for animation
+                        member.classList.remove("staff-hidden")
+                        member.classList.add("staff-expanding")
+
+                        // After the animation, remove expanding and add visible
+                        setTimeout(() => {
+                            member.classList.remove("staff-expanding")
+                            member.classList.add("staff-visible")
+                        }, 400) // Animation duration
+                    }, index * 100) // Stagger delay between items
+                })
+
+                icon.classList.replace("fa-chevron-down", "fa-chevron-up")
+                toggleBtn.setAttribute("aria-expanded", "true")
+                toggleBtn.setAttribute("title", "Show fewer team members")
+
+                // Update the button position after a short delay
+                setTimeout(updateButtonPosition, 200)
+
+            } else {
+                // Collapse – hide members (from last to first – REVERSED ORDER)
+                hiddenMembersArray.reverse().forEach((member, index) => {
+                    setTimeout(() => {
+                        // Remove visible and add collapsing for animation
+                        member.classList.remove("staff-visible")
+                        member.classList.add("staff-collapsing")
+
+                        // After the animation, remove collapsing and add hidden
+                        setTimeout(() => {
+                            member.classList.remove("staff-collapsing")
+                            member.classList.add("staff-hidden")
+                        }, 400)
+                    }, index * 80)
+                })
+
+                icon.classList.replace("fa-chevron-up", "fa-chevron-down")
+                toggleBtn.setAttribute("aria-expanded", "false")
+                toggleBtn.setAttribute("title", "Show more team members")
+
+                // Immediately updates the button position to return to the initial state
+                setTimeout(updateButtonPosition, 100)
+            }
+        }
+
+        // Event listeners
+        toggleBtn.addEventListener("click", toggleStaff)
+        toggleBtn.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault()
+                toggleStaff()
+            }
+        })
+
+        toggleBtn.addEventListener("click", () => {
+            setTimeout(() => {
+                if (isExpanded) {
+                    const lastVisibleMember = staffGrid.querySelector('.staff-member:last-child')
+                    if (lastVisibleMember) {
+                        lastVisibleMember.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'nearest'
+                        })
+                    }
+                } else {
+                    toggleBtn.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest'
+                    })
+                }
+            }, 200)
+        })
     }
 
-    // Show loading state
-    showLoadingState() {
-        const container = document.querySelector(APP_CONFIG.SELECTORS.COMMENTS_CONTAINER);
-        if (container) {
-            container.innerHTML = UITemplates.getLoadingTemplate('Carregando comentários...');
+    // Utility: Throttle function
+    throttle(func, limit) {
+        let inThrottle
+        return function () {
+            const args = arguments
+            const context = this
+            if (!inThrottle) {
+                func.apply(context, args)
+                inThrottle = true
+                setTimeout(() => inThrottle = false, limit)
+            }
         }
     }
 
-    // Show error state
-    showErrorState(message = APP_CONFIG.ERROR_MESSAGES.GENERIC_ERROR) {
-        const container = document.querySelector(APP_CONFIG.SELECTORS.COMMENTS_CONTAINER);
-        if (container) {
-            container.innerHTML = UITemplates.getErrorTemplate(message, {
-                customRetryCallback: 'movieDetailsManager.retryLoadComments()'
-            });
-        }
-    }
+    // Cleanup method
+    destroy() {
+        try {
+            // Remove event listeners
+            this.eventListeners.forEach(({ event, handler }) => {
+                window.removeEventListener(event, handler)
+            })
 
-    // Retry loading comments
-    retryLoadComments() {
-        const currentPage = UrlUtils.getCurrentPage();
-        this.loadComments(currentPage);
+            // Disconnect observers
+            this.observers.forEach(observer => observer.disconnect())
+
+            // Destroy Swiper instances
+            this.swiperInstances.forEach(swiper => {
+                if (swiper && typeof swiper.destroy === "function") {
+                    swiper.destroy(true, true)
+                }
+            })
+
+            // Remove parallax CSS
+            const parallaxStyle = document.getElementById('parallax-optimization')
+            if (parallaxStyle) {
+                parallaxStyle.remove()
+            }
+
+            this.isInitialized = false
+            console.log("MovieDetailsManager destroyed")
+        } catch (error) {
+            console.error("Error during cleanup:", error)
+        }
     }
 }
 
-// Class to handle expandable comment logic
+// Simplified Expandable Comment class
 class ExpandableComment {
-    constructor(element, fullText) {
-        this.element = element;
-        this.fullText = element.innerHTML;
-        this.shortText = fullText.substring(0, APP_CONFIG.LIMITS.COMMENT_PREVIEW_LENGTH) + '...';
-        this.isExpanded = false;
-
-        this.init();
+    constructor(element, textContent) {
+        this.element = element
+        this.fullText = textContent
+        this.shortText = textContent.substring(0, APP_CONFIG.LIMITS.COMMENT_PREVIEW_LENGTH) + "..."
+        this.isExpanded = false
+        this.init()
     }
 
     init() {
-        this.element.innerHTML = SecurityUtils.sanitizeText(this.shortText);
-        this.createToggleButton();
+        this.button = document.createElement("button")
+        this.button.className = "btn btn-link btn-sm p-0 ms-1"
+        this.button.textContent = "Ver mais"
+        this.button.setAttribute("type", "button")
+        this.button.setAttribute("aria-expanded", "false")
+
+        this.button.addEventListener("click", (e) => {
+            e.preventDefault()
+            this.toggle()
+        })
+
+        this.collapse()
     }
 
-    createToggleButton() {
-        this.button = document.createElement('button');
-        this.button.className = 'btn btn-link btn-sm p-0 ms-1';
-        this.button.style.fontSize = '0.85em';
-        this.button.innerHTML = 'Ver mais';
-        this.button.setAttribute('aria-label', 'Expandir comentário completo');
-
-        this.button.addEventListener('click', this.toggle.bind(this));
-        this.element.appendChild(this.button);
-    }
-
-    toggle(event) {
-        event.preventDefault();
-        if (!this.isExpanded) {
-            this.expand();
+    toggle() {
+        this.isExpanded = !this.isExpanded
+        if (this.isExpanded) {
+            this.expand()
         } else {
-            this.collapse();
+            this.collapse()
         }
     }
 
     expand() {
-        this.element.innerHTML = this.fullText;
-        this.button.innerHTML = 'Ver menos';
-        this.button.setAttribute('aria-label', 'Recolher comentário');
-        this.element.appendChild(this.button);
-        this.isExpanded = true;
+        this.element.textContent = this.fullText
+        this.button.textContent = "Ver menos"
+        this.button.setAttribute("aria-expanded", "true")
+        this.element.appendChild(document.createTextNode(" "))
+        this.element.appendChild(this.button)
     }
 
     collapse() {
-        this.element.innerHTML = SecurityUtils.sanitizeText(this.shortText);
-        this.button.innerHTML = 'Ver mais';
-        this.button.setAttribute('aria-label', 'Expandir comentário completo');
-        this.element.appendChild(this.button);
-        this.isExpanded = false;
+        this.element.textContent = this.shortText
+        this.button.textContent = "Ver mais"
+        this.button.setAttribute("aria-expanded", "false")
+        this.element.appendChild(document.createTextNode(" "))
+        this.element.appendChild(this.button)
     }
 }
 
-// Initialization
-let movieDetailsManager;
+// Initialize when DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+    window.movieDetailsManager = new MovieDetailsManager()
+})
 
-const initializeMovieDetails = () => {
-    movieDetailsManager = new MovieDetailsManager();
-};
+// Cleanup on page unload
+window.addEventListener("beforeunload", () => {
+    if (window.movieDetailsManager) {
+        window.movieDetailsManager.destroy()
+    }
+})
 
-// Auto-initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeMovieDetails);
-} else {
-    initializeMovieDetails();
-}
-
-// Export to HTML
-window.loadComments = (page) => movieDetailsManager?.loadComments(page);
-window.retryLoadComments = () => movieDetailsManager?.retryLoadComments();
+// Handle page visibility changes for performance
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+        console.log("Page hidden - pausing animations")
+    } else {
+        console.log("Page visible - resuming animations")
+    }
+})

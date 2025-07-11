@@ -4,17 +4,17 @@ namespace CineHub.Services.Ranking
 {
     public class MovieRankingService : IRankingService
     {
-        /// Calcula o Wilson Score para ranking de filmes
-        /// Considera tanto a nota média quanto o número de votos para um ranking mais confiável
+        // Calculates the Wilson Score for movie ranking
+        // Considers both average rating and number of votes for a more reliable ranking
         public double CalculateWilsonScore(double rating, int voteCount, double confidence = 0.95)
         {
             if (voteCount == 0) return 0;
 
-            // Normaliza a avaliação para escala 0-1 (TMDb usa 0-10)
+            // Normalize rating to 0-1 scale (TMDb uses 0-10)
             double p = rating / 10.0;
             double n = voteCount;
 
-            // Z-score para o nível de confiança
+            // Z-score for the confidence level
             double z = confidence switch
             {
                 0.90 => 1.645,
@@ -23,7 +23,7 @@ namespace CineHub.Services.Ranking
                 _ => 1.96
             };
 
-            // Fórmula do Wilson Score
+            // Wilson Score formula
             double denominator = 1 + (z * z) / n;
             double centre_adjusted_probability = p + (z * z) / (2 * n);
             double adjusted_standard_deviation = Math.Sqrt((p * (1 - p) + (z * z) / (4 * n)) / n);
@@ -33,8 +33,8 @@ namespace CineHub.Services.Ranking
             return Math.Max(0, lower_bound);
         }
 
-        /// Aplica Wilson Score a uma lista de filmes
-        /// Top Rated, Pesquisas com filtros, Rankings gerais
+        // Applies Wilson Score ranking to a list of movies
+        // For Top Rated, filtered searches, general rankings
         public List<Movie> ApplyWilsonScoreRanking(List<Movie> movies, double confidence = 0.95)
         {
             return movies
@@ -50,30 +50,30 @@ namespace CineHub.Services.Ranking
                 .ToList();
         }
 
-        /// Calcula score de popularidade personalizado
-        /// Considera: votos totais, nota média, recência do filme
+        // Calculates a custom popularity score
+        // Considers: total votes, average rating, and movie recency
         public double CalculatePopularityScore(Movie movie)
         {
             if (movie.VoteCount == 0) return 0;
 
-            // Componentes do score
+            // Components of the score
             double ratingComponent = movie.VoteAverage / 10.0; // 0-1
             double voteComponent = Math.Log10(Math.Max(1, movie.VoteCount)) / 6.0; // Log scale, max ~6
 
-            // Componente de recência (filmes mais novos têm boost)
-            double recencyComponent = 0.5; // Default para filmes sem data
+            // Recency component (newer movies get a boost)
+            double recencyComponent = 0.5; // Default for movies without a release date
             if (movie.ReleaseDate.HasValue)
             {
                 var yearsOld = DateTime.Now.Year - movie.ReleaseDate.Value.Year;
-                recencyComponent = Math.Max(0.1, 1.0 - (yearsOld * 0.02)); // Decai 2% por ano
+                recencyComponent = Math.Max(0.1, 1.0 - (yearsOld * 0.02)); // Decays 2% per year
             }
 
-            // Fórmula combinada com pesos
+            // Combined formula with weights
             return (ratingComponent * 0.4) + (voteComponent * 0.4) + (recencyComponent * 0.2);
         }
 
-        /// Ranking por popularidade atual
-        ///Seção "Popular", Homepage, Descobrir filmes
+        // Current popularity ranking
+        // "Popular" section, homepage, discover movies
         public List<Movie> ApplyPopularityRanking(List<Movie> movies)
         {
             return movies
@@ -88,8 +88,8 @@ namespace CineHub.Services.Ranking
                 .ToList();
         }
 
-        /// Ranking rigoroso para Top Rated
-        /// Requer número mínimo de votos e usa Wilson Score mais conservador
+        // Strict ranking for Top Rated
+        // Requires minimum number of votes and uses a more conservative Wilson Score
         public List<Movie> ApplyTopRatedRanking(List<Movie> movies, int minVotes = 100)
         {
             return movies
@@ -97,7 +97,7 @@ namespace CineHub.Services.Ranking
                 .Select(m => new
                 {
                     Movie = m,
-                    WilsonScore = CalculateWilsonScore(m.VoteAverage, m.VoteCount, 0.99) // Mais conservador
+                    WilsonScore = CalculateWilsonScore(m.VoteAverage, m.VoteCount, 0.99) // More conservative
                 })
                 .OrderByDescending(x => x.WilsonScore)
                 .ThenByDescending(x => x.Movie.VoteAverage)
@@ -106,8 +106,8 @@ namespace CineHub.Services.Ranking
                 .ToList();
         }
 
-        /// Ranking por relevância de pesquisa
-        /// Considera correspondência no título, overview e combina com qualidade
+        // Search relevance ranking
+        // Considers matches in title, overview and combines with quality
         public List<Movie> ApplySearchRelevanceRanking(List<Movie> movies, string searchQuery)
         {
             if (string.IsNullOrWhiteSpace(searchQuery))
@@ -128,8 +128,8 @@ namespace CineHub.Services.Ranking
                 .ToList();
         }
 
-        /// Ranking por recência combinado com qualidade
-        /// Filmes mais novos ganham boost, mas ainda considera qualidade
+        // Recency ranking combined with quality
+        // Newer movies get a boost but quality is still considered
         public List<Movie> ApplyRecencyRanking(List<Movie> movies)
         {
             return movies
@@ -139,17 +139,17 @@ namespace CineHub.Services.Ranking
                     RecencyScore = CalculateRecencyScore(m),
                     QualityScore = CalculateWilsonScore(m.VoteAverage, m.VoteCount)
                 })
-                .OrderByDescending(x => x.RecencyScore + (x.QualityScore * 0.3)) // Combina recência com qualidade
+                .OrderByDescending(x => x.RecencyScore + (x.QualityScore * 0.3)) // Combines recency with quality
                 .Select(x => x.Movie)
                 .ToList();
         }
 
-        /// Calcula relevância para pesquisa
+        // Calculates search relevance score
         private double CalculateSearchRelevance(Movie movie, string query)
         {
             double score = 0;
 
-            // Correspondência exata no título = máximo score
+            // Exact match in title = max score
             if (movie.Title.ToLower() == query)
                 score += 100;
             else if (movie.Title.ToLower().StartsWith(query))
@@ -157,17 +157,17 @@ namespace CineHub.Services.Ranking
             else if (movie.Title.ToLower().Contains(query))
                 score += 25;
 
-            // Correspondência no overview
+            // Match in overview
             if (!string.IsNullOrEmpty(movie.Overview) && movie.Overview.ToLower().Contains(query))
                 score += 10;
 
-            // Boost por qualidade (filmes melhores aparecem primeiro entre os relevantes)
+            // Boost by quality (better movies appear first among relevant ones)
             score += movie.VoteAverage;
 
             return score;
         }
 
-        /// Calcula score de recência
+        // Calculates recency score
         private double CalculateRecencyScore(Movie movie)
         {
             if (!movie.ReleaseDate.HasValue)
@@ -176,14 +176,14 @@ namespace CineHub.Services.Ranking
             var now = DateTime.Now;
             var releaseDate = movie.ReleaseDate.Value;
 
-            // Filmes futuros ou muito antigos têm score menor
+            // Future or very old movies have lower score
             if (releaseDate > now)
                 return 0.1;
 
             var daysSinceRelease = (now - releaseDate).TotalDays;
 
-            // Score decai exponencialmente com o tempo
-            return Math.Max(0.1, Math.Exp(-daysSinceRelease / 365.0)); // Meia-vida de ~1 ano
+            // Score decays exponentially over time
+            return Math.Max(0.1, Math.Exp(-daysSinceRelease / 365.0)); // Half-life of ~1 year
         }
     }
 }

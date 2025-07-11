@@ -2,23 +2,20 @@
 @{
     ViewData["Title"] = "Filmes Mais Bem Avaliados";
 }
-
-@* 1. Referências aos arquivos de estilo compartilhados. *@
 <link rel="stylesheet" href="~/css/shared/movie-card.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/shared/pagination.css" asp-append-version="true" />
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>⭐ Filmes Mais Bem Avaliados</h1>
+    <h1>Filmes Mais Bem Avaliados</h1>
 </div>
-
-@* 2. A classe "ajax-pagination-container" foi adicionada. *@
-<section id="movie-list-section" class="ajax-pagination-container">
+<section id="movie-list-section"
+         class="ajax-pagination-container"
+         data-animation-class=".content-card-animation">
     @if (Model.Movies.Any())
     {
         <div class="row" id="movies-container">
             @foreach (var movie in Model.Movies)
             {
-                @* 3. A classe de animação agora é a genérica "content-card-animation". *@
                 <div class="col-lg-3 col-md-4 col-sm-6 mb-4 content-card-animation">
                     @{
                         ViewData["CardSize"] = "standard";
@@ -29,14 +26,18 @@
                 </div>
             }
         </div>
-
         @if (Model.TotalPages > 1)
         {
             var routeData = new RouteValueDictionary(ViewContext.RouteData.Values);
-            foreach (var key in Context.Request.Query.Keys) { if (!routeData.ContainsKey(key)) { routeData[key] = Context.Request.Query[key]; } }
+            foreach (var key in Context.Request.Query.Keys)
+            {
+                if (!routeData.ContainsKey(key))
+                {
+                    routeData[key] = Context.Request.Query[key];
+                }
+            }
             routeData.Remove("page");
             var routeValuesForHelper = routeData.ToDictionary(kvp => kvp.Key, kvp => kvp.Value?.ToString() ?? "");
-
             <nav aria-label="Navegação de páginas" class="mt-5">
                 <ul class="pagination justify-content-center flex-wrap">
                     <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
@@ -69,24 +70,13 @@
             </p>
         </div>
     }
-
-    @* O overlay de carregamento permanece aqui, para ser encontrado pelo script. *@
     <div class="loading-overlay">
         <div class="spinner-border" role="status">
             <span class="visually-hidden">Carregando...</span>
         </div>
     </div>
 </section>
-
 @section Scripts {
-    @* Inclui o script já existente para a funcionalidade do card de filme. *@
     <script src="~/js/shared/movie-card.js" asp-append-version="true"></script>
-
-    @* 4. Inclui o novo script de paginação e o inicializa para esta página. *@
-    <script src="~/js/shared/ajax-pagination.js" asp-append-version="true"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeAjaxPagination('#movie-list-section', '.content-card-animation');
-        });
-    </script>
+    <script src="~/js/shared/pagination.js" asp-append-version="true"></script>
 }

@@ -1,7 +1,7 @@
 ﻿version: '3.8'
 
 services:
-  # Banco de dados PostgreSQL 17
+   # PostgreSQL 17 database
   postgres:
     image: postgres:17
     container_name: cinehub-postgres
@@ -24,7 +24,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Aplicação .NET 8
+  # .NET 8 application
   cinehub-app:
     build:
       context: .

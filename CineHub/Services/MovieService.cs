@@ -364,7 +364,7 @@ namespace CineHub.Services
             return new PaginatedResult<Movie>(paginatedItems, totalCount, page, pageSize);
         }
 
-        // Helper method to create a paginated result from a query (método original mantido para compatibilidade)
+        // Helper method to create a paginated result from a query
         private async Task<PaginatedResult<Movie>> GetPaginatedResultAsync(IQueryable<Movie> query, int page, int pageSize)
         {
             var totalCount = await query.CountAsync();
@@ -385,8 +385,11 @@ namespace CineHub.Services
 
             if (existingMovie != null)
             {
-                var shouldUpdate = (DateTime.UtcNow - existingMovie.LastUpdated).TotalDays > 7;
-                if (shouldUpdate)
+                var needsBackfill = string.IsNullOrEmpty(existingMovie.BackdropPath);
+
+                var cacheExpired = (DateTime.UtcNow - existingMovie.LastUpdated).TotalDays > 7;
+
+                if (cacheExpired || needsBackfill)
                 {
                     existingMovie.Title = movieDto.Title;
                     existingMovie.Overview = movieDto.Overview;
@@ -394,9 +397,10 @@ namespace CineHub.Services
                         ? DateTime.SpecifyKind(date, DateTimeKind.Utc)
                         : existingMovie.ReleaseDate;
                     existingMovie.PosterPath = movieDto.PosterPath;
+                    existingMovie.BackdropPath = movieDto.BackdropPath;
                     existingMovie.VoteAverage = movieDto.VoteAverage;
                     existingMovie.VoteCount = movieDto.VoteCount;
-                    existingMovie.LastUpdated = DateTime.UtcNow;
+                    existingMovie.LastUpdated = DateTime.UtcNow; 
 
                     try
                     {
@@ -404,7 +408,7 @@ namespace CineHub.Services
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error while updating cached movie: {ex.Message}");
+                        Console.WriteLine($"Error saving new movie to the database: {ex.Message}");
                     }
                 }
 
@@ -420,6 +424,7 @@ namespace CineHub.Services
                     ? DateTime.SpecifyKind(parsedDate, DateTimeKind.Utc)
                     : null,
                 PosterPath = movieDto.PosterPath,
+                BackdropPath = movieDto.BackdropPath,
                 VoteAverage = movieDto.VoteAverage,
                 VoteCount = movieDto.VoteCount,
                 LastUpdated = DateTime.UtcNow
@@ -433,9 +438,9 @@ namespace CineHub.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving new movie to DB: {ex.Message}");
-                return null;
+                Console.WriteLine($"Error saving new movie to the database: {ex.Message}");
+                return null; 
             }
         }
     }
-}
+ }

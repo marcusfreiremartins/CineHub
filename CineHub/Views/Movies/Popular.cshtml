@@ -3,22 +3,21 @@
     ViewData["Title"] = "Filmes Populares";
 }
 
-@* 1. Referências aos arquivos de estilo compartilhados. *@
 <link rel="stylesheet" href="~/css/shared/movie-card.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/shared/pagination.css" asp-append-version="true" />
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>🔥 Filmes Populares</h1>
+    <h1>Filmes Populares</h1>
 </div>
 
-@* 2. A classe "ajax-pagination-container" foi adicionada para que o CSS e o JS possam identificar esta seção. *@
-<section id="movie-list-section" class="ajax-pagination-container">
+<section id="movie-list-section"
+         class="ajax-pagination-container"
+         data-animation-class=".content-card-animation">
     @if (Model.Movies.Any())
     {
         <div class="row" id="movies-container">
             @foreach (var movie in Model.Movies)
             {
-                @* 3. A classe de animação agora é a genérica "content-card-animation". *@
                 <div class="col-lg-3 col-md-4 col-sm-6 mb-4 content-card-animation">
                     @{
                         ViewData["CardSize"] = "standard";
@@ -73,7 +72,6 @@
         </div>
     }
 
-    @* O overlay de carregamento permanece aqui, para ser encontrado pelo script. *@
     <div class="loading-overlay">
         <div class="spinner-border" role="status">
             <span class="visually-hidden">Carregando...</span>
@@ -82,20 +80,6 @@
 </section>
 
 @section Scripts {
-    @{
-        // É uma boa prática renderizar scripts de validação, caso existam no seu layout.
-        // await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-
-    @* Inclui o script já existente para a funcionalidade do card de filme. *@
     <script src="~/js/shared/movie-card.js" asp-append-version="true"></script>
-
-    @* 4. Inclui o novo script de paginação e o inicializa, passando o ID do contêiner desta página. *@
     <script src="~/js/shared/pagination.js" asp-append-version="true"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Inicializa a paginação AJAX para a seção de filmes desta página.
-            initializeAjaxPagination('#movie-list-section', '.content-card-animation');
-        });
-    </script>
 }

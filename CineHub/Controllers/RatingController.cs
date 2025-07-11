@@ -47,6 +47,7 @@ namespace CineHub.Controllers
                 MovieId = movieId,
                 MovieTitle = movie.Title,
                 MoviePosterPath = movie.PosterPath,
+                MovieBackdropPath = movie.BackdropPath,
                 Rating = existingRating?.Rating ?? 5,
                 Comment = existingRating?.Comment,
                 IsFavorite = isFavorite,

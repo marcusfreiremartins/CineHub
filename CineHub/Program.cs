@@ -19,6 +19,7 @@ builder.Services.AddHttpClient<TMDbService>();
 builder.Services.AddScoped<MovieService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<RatingService>();
+builder.Services.AddScoped<PersonService>();
 builder.Services.AddScoped<IRankingService, MovieRankingService>();
 
 builder.Services.AddSession(options =>

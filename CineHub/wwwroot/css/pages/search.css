@@ -1,4 +1,4 @@
-﻿/* Estilos específicos para a página de pesquisa e seus filtros */
+﻿/* Estilos específicos para a página de pesquisa */
 
 .form-label {
     font-weight: 600;
@@ -10,13 +10,13 @@
     border-color: #0d6efd;
 }
 
-/* Reordena o layout em telas menores para melhor usabilidade mobile */
+/* Specific styles for the search page */
 @media (max-width: 991.98px) {
     .filters-sidebar {
-        order: 2; /* Filtros aparecem depois dos resultados */
+        order: 2; /* Filters appear after the results */
     }
 
     .results-area {
-        order: 1; /* Resultados aparecem primeiro */
+        order: 1; /* Results appear first */
     }
 }
