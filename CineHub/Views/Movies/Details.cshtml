@@ -20,7 +20,7 @@
                         <div class="movie-poster-wrapper">
                             @if (!string.IsNullOrEmpty(Model.Movie.PosterPath))
                             {
-                                <img id="moviePosterImage" src="@(Model.ImageBaseUrl + Model.Movie.PosterPath)"
+                                <img id="moviePosterImage" src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + Model.Movie.PosterPath })"
                                      class="movie-poster img-fluid" alt="Pôster de @Model.Movie.Title"
                                      crossorigin="anonymous" loading="eager">
                             }
@@ -98,7 +98,7 @@
                                                 <div class="person-photo-wrapper">
                                                     @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
                                                     {
-                                                        <img src="@(Model.ImageBaseUrl + credit.Person.ProfilePath)"
+                                                        <img src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + credit.Person.ProfilePath })"
                                                              class="person-photo" alt="@credit.Person.Name" loading="lazy">
                                                     }
                                                     else
@@ -155,7 +155,7 @@
                                             <div class="crew-photo-wrapper me-3">
                                                 @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
                                                 {
-                                                    <img src="@(Model.ImageBaseUrl + credit.Person.ProfilePath)"
+                                                    <img src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + credit.Person.ProfilePath })"
                                                          class="crew-photo rounded-circle" alt="@credit.Person.Name" loading="lazy"
                                                          style="width: 60px; height: 60px; object-fit: cover;">
                                                 }
@@ -206,7 +206,7 @@
                                             <div class="crew-photo-wrapper me-3">
                                                 @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
                                                 {
-                                                    <img src="@(Model.ImageBaseUrl + credit.Person.ProfilePath)"
+                                                    <img src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + credit.Person.ProfilePath })"
                                                          class="crew-photo rounded-circle" alt="@credit.Person.Name" loading="lazy"
                                                          style="width: 60px; height: 60px; object-fit: cover;">
                                                 }
@@ -257,7 +257,7 @@
                                             <div class="crew-photo-wrapper me-3">
                                                 @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
                                                 {
-                                                    <img src="@(Model.ImageBaseUrl + credit.Person.ProfilePath)"
+                                                    <img src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + credit.Person.ProfilePath })"
                                                          class="crew-photo rounded-circle" alt="@credit.Person.Name" loading="lazy"
                                                          style="width: 60px; height: 60px; object-fit: cover;">
                                                 }
@@ -313,7 +313,7 @@
                                                 <div class="staff-photo-wrapper me-3">
                                                     @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
                                                     {
-                                                        <img src="@(Model.ImageBaseUrl + credit.Person.ProfilePath)" class="staff-photo rounded-circle" alt="@credit.Person.Name" loading="lazy">
+                                                        <img src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + credit.Person.ProfilePath })" class="staff-photo rounded-circle" alt="@credit.Person.Name" loading="lazy">
                                                     }
                                                     else
                                                     {
