@@ -191,11 +191,11 @@ namespace CineHub.Services
                 }
                 else if (releaseYear.HasValue)
                 {
-                    moviesFromApi = await _tmdbService.GetMoviesByYearAsync(releaseYear.Value, page);
+                    moviesFromApi = await _tmdbService.DiscoverMoviesAsync(releaseYear.Value, page);
                 }
                 else if (minRating.HasValue)
                 {
-                    moviesFromApi = await _tmdbService.GetMoviesByMinRatingAsync((double)minRating.Value, page);
+                    moviesFromApi = await _tmdbService.DiscoverMoviesAsync(minRating: (double)minRating.Value, page: page);
                 }
                 else
                 {
@@ -233,7 +233,7 @@ namespace CineHub.Services
         {
             try
             {
-                var moviesFromApi = await _tmdbService.GetMoviesByYearAsync(year, page);
+                var moviesFromApi = await _tmdbService.DiscoverMoviesAsync(year, page);
 
                 if (moviesFromApi?.Any() == true)
                 {
@@ -268,7 +268,7 @@ namespace CineHub.Services
         {
             try
             {
-                var moviesFromApi = await _tmdbService.GetMoviesByMinRatingAsync(minRating, page);
+                var moviesFromApi = await _tmdbService.DiscoverMoviesAsync(minRating: minRating, page: page);
 
                 if (moviesFromApi?.Any() == true)
                 {

@@ -4,6 +4,7 @@ using CineHub.Models.DTOs;
 using CineHub.Models.Enum;
 using CineHub.Extensions;
 using Microsoft.EntityFrameworkCore;
+using CineHub.Models.ViewModels.Persons;
 
 namespace CineHub.Services
 {
@@ -282,6 +283,28 @@ namespace CineHub.Services
         {
             if (string.IsNullOrEmpty(dateStr)) return null;
             return DateTime.TryParse(dateStr, out DateTime date) ? date : null;
+        }
+
+        public async Task<Person?> GetPersonByIdAsync(int id)
+        {
+            return await _context.People
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task<List<MoviePersonDetails>> GetPersonMoviesAsync(int personId)
+        {
+            return await _context.MoviePeople
+                .Where(mp => mp.PersonId == personId)
+                .Include(mp => mp.Movie)
+                .Select(mp => new MoviePersonDetails
+                {
+                    Movie = mp.Movie,
+                    Role = mp.Role,
+                    Character = mp.Character,
+                    Order = mp.Order
+                })
+                .OrderByDescending(mpd => mpd.Movie.ReleaseDate)
+                .ToListAsync();
         }
     }
 }

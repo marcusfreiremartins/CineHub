@@ -1,8 +1,8 @@
-﻿using System.Text.Json;
-using CineHub.Models.DTOs;
-using System.Net;
-using CineHub.Services.Ranking;
+﻿using System.Net;
+using System.Text.Json;
 using CineHub.Models;
+using CineHub.Models.DTOs;
+using CineHub.Services.Ranking;
 
 namespace CineHub.Services
 {
@@ -11,402 +11,142 @@ namespace CineHub.Services
         private readonly HttpClient _httpClient;
         private readonly string _apiKey;
         private readonly IRankingService _rankingService;
-        private readonly string _baseUrl = "https://api.themoviedb.org/3";
+        private readonly ILogger<TMDbService> _logger;
+        private readonly string _baseUrl;
 
-        public TMDbService(HttpClient httpClient, IConfiguration configuration, IRankingService rankingService)
+        public TMDbService(
+            HttpClient httpClient,
+            IConfiguration configuration,
+            IRankingService rankingService,
+            ILogger<TMDbService> logger)
         {
             _httpClient = httpClient;
             _rankingService = rankingService;
-            _apiKey = configuration["TMDb:ApiKey"] ?? "demo_key";
+            _logger = logger;
+            _apiKey = configuration["TMDb:ApiKey"] ?? throw new ArgumentNullException(nameof(configuration), "TMDb:ApiKey not found.");
+            _baseUrl = configuration["TMDb:BaseUrl"] ?? throw new ArgumentNullException(nameof(configuration), "TMDb: BaseUrl not found.");
 
-            // Configure request timeout
-            _httpClient.Timeout = TimeSpan.FromSeconds(10);
+            _httpClient.Timeout = TimeSpan.FromSeconds(15);
         }
 
-        // Fetches a list of popular movies from TMDb API
+        // Gets a list of popular movies from TMDb
         public async Task<List<MovieDTO>> GetPopularMoviesAsync(int page = 1)
         {
-            try
-            {
-                var response = await _httpClient.GetAsync(
-                    $"{_baseUrl}/movie/popular?api_key={_apiKey}&page={page}&language=pt-BR"
-                );
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<TMDbResponse>(json);
-                    return result?.Results ?? new List<MovieDTO>();
-                }
-                else
-                {
-                    Console.WriteLine($"TMDb API returned error: {response.StatusCode} - {response.ReasonPhrase}");
-                    throw new HttpRequestException($"API error: {response.StatusCode}");
-                }
-            }
-            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
-            {
-                Console.WriteLine("TMDb API request timed out.");
-                throw new TimeoutException("TMDb API timeout", ex);
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine($"Connection error to TMDb API: {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while fetching popular movies: {ex.Message}");
-                throw;
-            }
+            var queryParams = new Dictionary<string, string> { { "page", page.ToString() } };
+            var response = await SendRequestAsync<TMDbResponse>("/movie/popular", queryParams);
+            return response?.Results ?? new List<MovieDTO>();
         }
 
-        // Fetches detailed information of a specific movie by its TMDb ID
+        // Gets detailed information of a specific movie by its TMDb ID
         public async Task<MovieDTO?> GetMovieDetailsAsync(int tmdbId)
         {
-            try
-            {
-                var response = await _httpClient.GetAsync(
-                    $"{_baseUrl}/movie/{tmdbId}?api_key={_apiKey}&language=pt-BR"
-                );
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    return JsonSerializer.Deserialize<MovieDTO>(json);
-                }
-                else if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    Console.WriteLine($"Movie with ID {tmdbId} not found on TMDb API.");
-                    return null;
-                }
-                else
-                {
-                    Console.WriteLine($"TMDb API returned error for movie details: {response.StatusCode}");
-                    throw new HttpRequestException($"API error: {response.StatusCode}");
-                }
-            }
-            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
-            {
-                Console.WriteLine("TMDb API request for movie details timed out.");
-                throw new TimeoutException("TMDb API timeout", ex);
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine($"Connection error with TMDb API (details): {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while fetching movie details: {ex.Message}");
-                throw;
-            }
+            return await SendRequestAsync<MovieDTO>($"/movie/{tmdbId}");
         }
 
-        // Searches movies by query string using TMDb API
+        // Searches movies by name and applies relevance ranking
         public async Task<List<MovieDTO>> SearchMoviesAsync(string query, int page = 1)
         {
             if (string.IsNullOrWhiteSpace(query))
                 return new List<MovieDTO>();
 
-            try
+            var queryParams = new Dictionary<string, string>
             {
-                var response = await _httpClient.GetAsync(
-                    $"{_baseUrl}/search/movie?api_key={_apiKey}&query={Uri.EscapeDataString(query)}&page={page}&language=pt-BR"
-                );
+                { "query", query },
+                { "page", page.ToString() }
+            };
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<TMDbResponse>(json);
-                    var movies = result?.Results ?? new List<MovieDTO>();
+            var response = await SendRequestAsync<TMDbResponse>("/search/movie", queryParams);
+            var movies = response?.Results ?? new List<MovieDTO>();
 
-                    // Convert DTOs to Movies for ranking, then back to DTOs
-                    if (movies.Any())
-                    {
-                        var movieEntities = ConvertDtosToMovies(movies);
-                        var rankedMovies = _rankingService.ApplySearchRelevanceRanking(movieEntities, query);
-                        return ConvertMoviesToDtos(rankedMovies);
-                    }
+            if (movies.Any())
+            {
+                var movieEntities = ConvertDtosToMovies(movies);
+                var rankedMovies = _rankingService.ApplySearchRelevanceRanking(movieEntities, query);
+                return ConvertMoviesToDtos(rankedMovies);
+            }
 
-                    return movies;
-                }
-                else
-                {
-                    Console.WriteLine($"TMDb API returned error on search: {response.StatusCode}");
-                    throw new HttpRequestException($"API error: {response.StatusCode}");
-                }
-            }
-            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
-            {
-                Console.WriteLine("TMDb API search request timed out.");
-                throw new TimeoutException("TMDb API timeout", ex);
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine($"Connection error with TMDb API (search): {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while searching movies: {ex.Message}");
-                throw;
-            }
+            return movies;
         }
 
-        // Fetches top-rated movies with optional pagination
+        // Gets top-rated movies (with rating >= 8), ordered by rating
         public async Task<List<MovieDTO>> GetTopRatedMoviesAsync(int page = 1)
-         {
-            try
-            {
-                var response = await _httpClient.GetAsync(
-                    $"{_baseUrl}/movie/top_rated?api_key={_apiKey}&page={page}&language=pt-BR"
-                );
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<TMDbResponse>(json);
-                    return result?.Results?.Where(m => m.VoteAverage >= 8.0)
-                                         ?.OrderByDescending(m => m.VoteAverage)
-                                         ?.ToList() ?? new List<MovieDTO>();
-                }
-                else
-                {
-                    Console.WriteLine($"TMDb API returned error for top rated movies: {response.StatusCode}");
-                    throw new HttpRequestException($"API error: {response.StatusCode}");
-                }
-            }
-            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
-            {
-                Console.WriteLine("TMDb API top-rated request timed out.");
-                throw new TimeoutException("TMDb API timeout", ex);
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine($"Connection error with TMDb API (top rated): {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while fetching top rated movies: {ex.Message}");
-                throw;
-            }
-        }
-
-        // Fetches movies by specific year
-        public async Task<List<MovieDTO>> GetMoviesByYearAsync(int year, int page = 1)
         {
-            try
-            {
-                var response = await _httpClient.GetAsync(
-                    $"{_baseUrl}/discover/movie?api_key={_apiKey}" +
-                    $"&primary_release_year={year}" +
-                    $"&page={page}&language=pt-BR" +
-                    $"&sort_by=vote_count.desc"
-                );
+            var queryParams = new Dictionary<string, string> { { "page", page.ToString() } };
+            var response = await SendRequestAsync<TMDbResponse>("/movie/top_rated", queryParams);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<TMDbResponse>(json);
-                    var movies = result?.Results ?? new List<MovieDTO>();
-
-                    // Apply Wilson Score ranking for year-based searches
-                    if (movies.Any())
-                    {
-                        var movieEntities = ConvertDtosToMovies(movies);
-                        var rankedMovies = _rankingService.ApplyWilsonScoreRanking(movieEntities);
-                        return ConvertMoviesToDtos(rankedMovies);
-                    }
-
-                    return movies;
-                }
-                else
-                {
-                    Console.WriteLine($"TMDb API returned error for year search: {response.StatusCode}");
-                    throw new HttpRequestException($"API error: {response.StatusCode}");
-                }
-            }
-            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
-            {
-                Console.WriteLine("TMDb API request timed out for year search.");
-                throw new TimeoutException("TMDb API timeout", ex);
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine($"Connection error with TMDb API (year search): {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while searching movies by year: {ex.Message}");
-                throw;
-            }
+            return response?.Results?
+                .Where(m => m.VoteAverage >= 8.0)
+                .OrderByDescending(m => m.VoteAverage)
+                .ToList() ?? new List<MovieDTO>();
         }
 
-        // Fetches movies with a minimum rating - APPLIES WILSON SCORE RANKING
-        public async Task<List<MovieDTO>> GetMoviesByMinRatingAsync(double minRating, int page = 1)
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync(
-                    $"{_baseUrl}/discover/movie?api_key={_apiKey}" +
-                    $"&vote_average.gte={minRating}&page={page}" +
-                    $"&language=pt-BR" +
-                    $"&sort_by=vote_count.desc"
-                );
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<TMDbResponse>(json);
-                    var movies = result?.Results ?? new List<MovieDTO>();
-
-                    // Apply Wilson Score ranking for rating-based searches
-                    if (movies.Any())
-                    {
-                        var movieEntities = ConvertDtosToMovies(movies);
-                        var rankedMovies = _rankingService.ApplyWilsonScoreRanking(movieEntities);
-                        return ConvertMoviesToDtos(rankedMovies);
-                    }
-
-                    return movies;
-                }
-                else
-                {
-                    Console.WriteLine($"TMDb API returned error for min rating search: {response.StatusCode}");
-                    throw new HttpRequestException($"API error: {response.StatusCode}");
-                }
-            }
-            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
-            {
-                Console.WriteLine("TMDb API request timed out for min rating search.");
-                throw new TimeoutException("TMDb API timeout", ex);
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine($"Connection error with TMDb API (min rating): {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while searching movies by min rating: {ex.Message}");
-                throw;
-            }
-        }
-
-        // Advanced discover search combining multiple filters - APPLIES WILSON SCORE RANKING
+        // Discovers movies with optional filters for year and minimum rating, applying Wilson score ranking
         public async Task<List<MovieDTO>> DiscoverMoviesAsync(int? year = null, double? minRating = null, int page = 1)
         {
-            try
+            var queryParams = new Dictionary<string, string>
             {
-                var queryParams = new List<string>
-                {
-                    $"api_key={_apiKey}",
-                    $"page={page}",
-                    $"language=pt-BR",
-                    $"sort_by=vote_count.desc"
-                };
+                { "page", page.ToString() },
+                { "sort_by", "vote_count.desc" }
+            };
 
-                if (year.HasValue)
-                    queryParams.Add($"primary_release_year={year.Value}");
+            if (year.HasValue)
+                queryParams.Add("primary_release_year", year.Value.ToString());
 
-                if (minRating.HasValue)
-                    queryParams.Add($"vote_average.gte={minRating.Value}");
+            if (minRating.HasValue)
+                queryParams.Add("vote_average.gte", minRating.Value.ToString("F1"));
 
-                var queryString = string.Join("&", queryParams);
-                var response = await _httpClient.GetAsync($"{_baseUrl}/discover/movie?{queryString}");
+            var response = await SendRequestAsync<TMDbResponse>("/discover/movie", queryParams);
+            var movies = response?.Results ?? new List<MovieDTO>();
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<TMDbResponse>(json);
-                    var movies = result?.Results ?? new List<MovieDTO>();
-
-                    // Apply Wilson Score ranking for discovery searches
-                    if (movies.Any())
-                    {
-                        var movieEntities = ConvertDtosToMovies(movies);
-                        var rankedMovies = _rankingService.ApplyWilsonScoreRanking(movieEntities);
-                        return ConvertMoviesToDtos(rankedMovies);
-                    }
-
-                    return movies;
-                }
-                else
-                {
-                    Console.WriteLine($"TMDb API returned error on discover search: {response.StatusCode}");
-                    throw new HttpRequestException($"API error: {response.StatusCode}");
-                }
-            }
-            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+            if (movies.Any())
             {
-                Console.WriteLine("TMDb API request timed out for discover search.");
-                throw new TimeoutException("TMDb API timeout", ex);
+                var movieEntities = ConvertDtosToMovies(movies);
+                var rankedMovies = _rankingService.ApplyWilsonScoreRanking(movieEntities);
+                return ConvertMoviesToDtos(rankedMovies);
             }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine($"Connection error with TMDb API (discover): {ex.Message}");
-                throw;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while discovering movies: {ex.Message}");
-                throw;
-            }
+
+            return movies;
         }
 
-        // Search movies by query and optional filters - APPLIES SEARCH RELEVANCE OR WILSON SCORE RANKING
+        // Searches movies with filters for query, year, and minimum rating
         public async Task<List<MovieDTO>> SearchMoviesWithFiltersAsync(string? query = null, int? year = null, double? minRating = null, int page = 1)
         {
             if (!string.IsNullOrWhiteSpace(query))
             {
-                try
-                {
-                    var searchResults = await SearchMoviesAsync(query, page);
+                var searchResults = await SearchMoviesAsync(query, page);
 
-                    var filteredResults = searchResults.AsEnumerable();
+                var filteredResults = searchResults.AsEnumerable();
+                if (year.HasValue)
+                    filteredResults = filteredResults.Where(m => DateTime.TryParse(m.ReleaseDate, out var date) && date.Year == year.Value);
+                if (minRating.HasValue)
+                    filteredResults = filteredResults.Where(m => m.VoteAverage >= minRating.Value);
 
-                    if (year.HasValue)
-                        filteredResults = filteredResults.Where(m => DateTime.TryParse(m.ReleaseDate, out var date) && date.Year == year.Value);
-
-                    if (minRating.HasValue)
-                        filteredResults = filteredResults.Where(m => m.VoteAverage >= minRating.Value);
-
-                    var finalResults = filteredResults.ToList();
-
-                    // Apply additional ranking after filtering if we have results
-                    if (finalResults.Any())
-                    {
-                        var movieEntities = ConvertDtosToMovies(finalResults);
-                        var rankedMovies = _rankingService.ApplySearchRelevanceRanking(movieEntities, query);
-                        return ConvertMoviesToDtos(rankedMovies);
-                    }
-
-                    return finalResults;
-                }
-                catch
-                {
-                    Console.WriteLine("Search failed with query, attempting discover without query.");
-                    throw;
-                }
+                return filteredResults.ToList();
             }
 
             return await DiscoverMoviesAsync(year, minRating, page);
         }
 
-        // Checks if TMDb API is up and responding
+        // Gets details of a person (actor/director) by TMDb person ID
+        public async Task<PersonDTO?> GetPersonDetailsAsync(int personId)
+        {
+            return await SendRequestAsync<PersonDTO>($"/person/{personId}");
+        }
+
+        // Gets movie credits (cast and crew) for a given movie ID
+        public async Task<(List<PersonDTO> Cast, List<PersonDTO> Crew)> GetMovieCreditsAsync(int movieId)
+        {
+            var response = await SendRequestAsync<MovieCreditsResponse>($"/movie/{movieId}/credits");
+            return (response?.Cast ?? new List<PersonDTO>(), response?.Crew ?? new List<PersonDTO>());
+        }
+
+        // Checks if the TMDb API is available without throwing exceptions
         public async Task<bool> IsApiAvailableAsync()
         {
             try
             {
-                var response = await _httpClient.GetAsync(
-                    $"{_baseUrl}/configuration?api_key={_apiKey}",
-                    new CancellationTokenSource(TimeSpan.FromSeconds(5)).Token
-                );
-
-                return response.IsSuccessStatusCode;
+                var response = await SendRequestAsync<object>("/configuration", useGlobalErrorHandling: false);
+                return response != null;
             }
             catch
             {
@@ -414,7 +154,66 @@ namespace CineHub.Services
             }
         }
 
-        // Helper method to convert MovieDTO list to Movie list for ranking
+        // Sends a request to the TMDb API and handles errors gracefully
+        private async Task<T?> SendRequestAsync<T>(string endpoint, Dictionary<string, string>? queryParams = null, bool useGlobalErrorHandling = true) where T : class
+        {
+            queryParams ??= new Dictionary<string, string>();
+            queryParams["api_key"] = _apiKey;
+            queryParams["language"] = "pt-BR";
+
+            var queryString = string.Join("&", queryParams.Select(kvp => $"{kvp.Key}={Uri.EscapeDataString(kvp.Value)}"));
+            var fullUrl = $"{_baseUrl}{endpoint}?{queryString}";
+
+            try
+            {
+                var response = await _httpClient.GetAsync(fullUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                }
+
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    _logger.LogWarning("Resource not found (404) at URL: {ApiUrl}", fullUrl);
+                    return null;
+                }
+
+                _logger.LogError("API returned an error. Status: {StatusCode}, URL: {ApiUrl}", response.StatusCode, fullUrl);
+
+                if (useGlobalErrorHandling)
+                    response.EnsureSuccessStatusCode();
+
+                return null;
+            }
+            catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+            {
+                _logger.LogError(ex, "API request timed out: {ApiUrl}", fullUrl);
+                if (useGlobalErrorHandling) throw new TimeoutException("API request timed out", ex);
+                return null;
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Connection error while accessing the API: {ApiUrl}", fullUrl);
+                if (useGlobalErrorHandling) throw;
+                return null;
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Error deserializing JSON from the API: {ApiUrl}", fullUrl);
+                if (useGlobalErrorHandling) throw;
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred while calling the API: {ApiUrl}", fullUrl);
+                if (useGlobalErrorHandling) throw;
+                return null;
+            }
+        }
+
+        // Converts a list of movie DTOs to Movie entities
         private List<Movie> ConvertDtosToMovies(List<MovieDTO> dtos)
         {
             return dtos.Select(dto => new Movie
@@ -433,7 +232,7 @@ namespace CineHub.Services
             }).ToList();
         }
 
-        // Helper method to convert Movie list back to MovieDTO list
+        // Converts a list of Movie entities to movie DTOs
         private List<MovieDTO> ConvertMoviesToDtos(List<Movie> movies)
         {
             return movies.Select(movie => new MovieDTO
@@ -447,63 +246,6 @@ namespace CineHub.Services
                 VoteAverage = movie.VoteAverage,
                 VoteCount = movie.VoteCount
             }).ToList();
-        }
-
-        public async Task<(List<PersonDTO> Cast, List<PersonDTO> Crew)> GetMovieCreditsAsync(int movieId)
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync(
-                    $"{_baseUrl}/movie/{movieId}/credits?api_key={_apiKey}&language=pt-BR"
-                );
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<MovieCreditsResponse>(json);
-                    return (result?.Cast ?? new List<PersonDTO>(), result?.Crew ?? new List<PersonDTO>());
-                }
-                else
-                {
-                    Console.WriteLine($"TMDb API returned error for movie credits: {response.StatusCode}");
-                    throw new HttpRequestException($"API error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while fetching movie credits: {ex.Message}");
-                throw;
-            }
-        }
-
-        public async Task<PersonDTO?> GetPersonDetailsAsync(int personId)
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync(
-                    $"{_baseUrl}/person/{personId}?api_key={_apiKey}&language=pt-BR"
-                );
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    return JsonSerializer.Deserialize<PersonDTO>(json);
-                }
-                else if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    Console.WriteLine($"TMDb API returned error for person details: {response.StatusCode}");
-                    throw new HttpRequestException($"API error: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while fetching person details: {ex.Message}");
-                throw;
-            }
         }
     }
 }
