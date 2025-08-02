@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using CineHub.Models;
 using CineHub.Services;
 using CineHub.Models.ViewModels.Persons;
 using CineHub.Configuration;
@@ -26,7 +25,7 @@ namespace CineHub.Controllers
                 return NotFound();
             }
 
-            var movies = await _personService.GetPersonMoviesAsync(id);
+            var movies = await _personService.GetPersonMoviesWithFallbackAsync(id);
 
             var viewModel = new PersonDetailsViewModel
             {
@@ -36,7 +35,6 @@ namespace CineHub.Controllers
             };
 
             ViewData["Title"] = person.Name;
-
             return View(viewModel);
         }
     }

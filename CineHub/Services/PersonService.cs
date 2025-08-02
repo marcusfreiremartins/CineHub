@@ -12,11 +12,13 @@ namespace CineHub.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly TMDbService _tmdbService;
+        private readonly MovieService _movieService;
 
-        public PersonService(ApplicationDbContext context, TMDbService tmdbService)
+        public PersonService(ApplicationDbContext context, TMDbService tmdbService, MovieService movieService)
         {
             _context = context;
             _tmdbService = tmdbService;
+            _movieService = movieService;
         }
 
         // Retrieves the movie credits (cast and crew) for a given movie, attempting from API and falling back to database if API fails
@@ -306,5 +308,152 @@ namespace CineHub.Services
                 .OrderByDescending(mpd => mpd.Movie.ReleaseDate)
                 .ToListAsync();
         }
+
+        private async Task<List<MoviePersonDetails>> GetPersonMoviesFromDatabaseAsync(int personId)
+        {
+            return await _context.MoviePeople
+                .Where(mp => mp.PersonId == personId)
+                .Include(mp => mp.Movie)
+                .Select(mp => new MoviePersonDetails
+                {
+                    Movie = mp.Movie,
+                    Role = mp.Role,
+                    Character = mp.Character,
+                    Order = mp.Order
+                })
+                .OrderByDescending(mpd => mpd.Movie.ReleaseDate)
+                .ToListAsync();
+        }
+
+
+        // Updates person-movie relations in database
+        private async Task UpdatePersonMovieRelationsAsync(int personId, List<MoviePersonDetails> movieDetails)
+        {
+            try
+            {
+                var existingRelations = await _context.MoviePeople
+                    .Where(mp => mp.PersonId == personId)
+                    .ToListAsync();
+
+                if (existingRelations.Any())
+                {
+                    _context.MoviePeople.RemoveRange(existingRelations);
+                }
+
+                var newRelations = movieDetails.Select(md => new MoviePerson
+                {
+                    MovieId = md.Movie.Id,
+                    PersonId = personId,
+                    Role = md.Role,
+                    Character = md.Character,
+                    Order = md.Order
+                }).ToList();
+
+                if (newRelations.Any())
+                {
+                    await _context.MoviePeople.AddRangeAsync(newRelations);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating person-movie relations: {ex.Message}");
+            }
+        }
+
+
+        // Processes person movies from API data
+        private async Task<List<MoviePersonDetails>> ProcessPersonMoviesFromApiAsync(
+            int personId,
+            int personTMDbId,
+            List<PersonDTO> cast,
+            List<PersonDTO> crew)
+        {
+            var moviePersonDetails = new List<MoviePersonDetails>();
+            var movieIds = new HashSet<int>();
+
+            movieIds.UnionWith(cast.Select(c => c.Id));
+            movieIds.UnionWith(crew.Where(c => ShouldIncludeCrewMember(c.Job)).Select(c => c.Id));
+
+            var movies = new Dictionary<int, Movie>();
+            foreach (var movieId in movieIds)
+            {
+                var movie = await _movieService.GetMovieByTMDbIdAsync(movieId);
+                if (movie != null)
+                {
+                    movies[movieId] = movie;
+                }
+            }
+
+            foreach (var castMember in cast.OrderBy(c => c.Order))
+            {
+                if (movies.TryGetValue(castMember.Id, out var movie))
+                {
+                    moviePersonDetails.Add(new MoviePersonDetails
+                    {
+                        Movie = movie,
+                        Role = PersonRole.Actor,
+                        Character = castMember.Character,
+                        Order = castMember.Order
+                    });
+                }
+            }
+
+            foreach (var crewMember in crew)
+            {
+                if (movies.TryGetValue(crewMember.Id, out var movie) &&
+                    ShouldIncludeCrewMember(crewMember.Job))
+                {
+                    var role = PersonRoleExtensions.MapFromJob(crewMember.Job);
+                    var character = role == PersonRole.CrewMember ? crewMember.Job : null;
+
+                    if (!moviePersonDetails.Any(mpd =>
+                        mpd.Movie.TMDbId == movie.TMDbId && mpd.Role == role))
+                    {
+                        moviePersonDetails.Add(new MoviePersonDetails
+                        {
+                            Movie = movie,
+                            Role = role,
+                            Character = character,
+                            Order = crewMember.Order
+                        });
+                    }
+                }
+            }
+
+            await UpdatePersonMovieRelationsAsync(personId, moviePersonDetails);
+
+            return moviePersonDetails
+                .OrderByDescending(mpd => mpd.Movie.ReleaseDate)
+                .ThenBy(mpd => mpd.Role.GetImportance())
+                .ToList();
+        }
+
+
+        public async Task<List<MoviePersonDetails>> GetPersonMoviesWithFallbackAsync(int personId)
+        {
+            try
+            {
+                var person = await _context.People.FirstOrDefaultAsync(p => p.Id == personId);
+                if (person == null)
+                {
+                    return new List<MoviePersonDetails>();
+                }
+
+                var (cast, crew) = await _tmdbService.GetPersonMovieCreditsAsync(person.TMDbId);
+                if (cast.Any() || crew.Any())
+                {
+                    return await ProcessPersonMoviesFromApiAsync(personId, person.TMDbId, cast, crew);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching person movies from API: {ex.Message}");
+            }
+
+            return await GetPersonMoviesFromDatabaseAsync(personId);
+        }
+
     }
 }

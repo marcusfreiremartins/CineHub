@@ -98,14 +98,18 @@
                                                 <div class="person-photo-wrapper">
                                                     @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
                                                     {
+                                                        <a href="@Url.Action("Details", "Persons", new { id = credit.Person.Id })">
                                                         <img src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + credit.Person.ProfilePath })"
                                                              class="person-photo" alt="@credit.Person.Name" loading="lazy">
+                                                        </a>
                                                     }
                                                     else
                                                     {
+                                                        <a href="@Url.Action("Details", "Persons", new { id = credit.Person.Id })">
                                                         <div class="person-photo avatar-placeholder"
                                                              title="@credit.Person.Name"
                                                              aria-label="Avatar de @credit.Person.Name"></div>
+                                                        </a>
                                                     }
                                                 </div>
                                                 <div class="person-name">@credit.Person.Name</div>
@@ -155,16 +159,20 @@
                                             <div class="crew-photo-wrapper me-3">
                                                 @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
                                                 {
+                                                    <a href="@Url.Action("Details", "Persons", new { id = credit.Person.Id })">
                                                     <img src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + credit.Person.ProfilePath })"
                                                          class="crew-photo rounded-circle" alt="@credit.Person.Name" loading="lazy"
                                                          style="width: 60px; height: 60px; object-fit: cover;">
+                                                         </a>
                                                 }
                                                 else
                                                 {
+                                                    <a href="@Url.Action("Details", "Persons", new { id = credit.Person.Id })">
                                                     <div class="crew-photo avatar-placeholder small"
                                                          style="width: 60px; height: 60px;"
                                                          title="@credit.Person.Name"
                                                          aria-label="Avatar de @credit.Person.Name"></div>
+                                                         </a>
                                                 }
                                             </div>
                                             <div class="crew-info">
@@ -206,16 +214,20 @@
                                             <div class="crew-photo-wrapper me-3">
                                                 @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
                                                 {
+                                                    <a href="@Url.Action("Details", "Persons", new { id = credit.Person.Id })">
                                                     <img src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + credit.Person.ProfilePath })"
                                                          class="crew-photo rounded-circle" alt="@credit.Person.Name" loading="lazy"
                                                          style="width: 60px; height: 60px; object-fit: cover;">
+                                                         </a>
                                                 }
                                                 else
                                                 {
+                                                    <a href="@Url.Action("Details", "Persons", new { id = credit.Person.Id })">
                                                     <div class="crew-photo avatar-placeholder small"
                                                          style="width: 60px; height: 60px;"
                                                          title="@credit.Person.Name"
                                                          aria-label="Avatar de @credit.Person.Name"></div>
+                                                         </a>
                                                 }
                                             </div>
                                             <div class="crew-info">
@@ -257,16 +269,20 @@
                                             <div class="crew-photo-wrapper me-3">
                                                 @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
                                                 {
+                                                    <a href="@Url.Action("Details", "Persons", new { id = credit.Person.Id })">
                                                     <img src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + credit.Person.ProfilePath })"
                                                          class="crew-photo rounded-circle" alt="@credit.Person.Name" loading="lazy"
                                                          style="width: 60px; height: 60px; object-fit: cover;">
+                                                         </a>
                                                 }
                                                 else
                                                 {
+                                                    <a href="@Url.Action("Details", "Persons", new { id = credit.Person.Id })">
                                                     <div class="crew-photo avatar-placeholder small"
                                                          style="width: 60px; height: 60px;"
                                                          title="@credit.Person.Name"
                                                          aria-label="Avatar de @credit.Person.Name"></div>
+                                                         </a>
                                                 }
                                             </div>
                                             <div class="crew-info">
@@ -313,11 +329,15 @@
                                                 <div class="staff-photo-wrapper me-3">
                                                     @if (!string.IsNullOrEmpty(credit.Person.ProfilePath))
                                                     {
+                                                        <a href="@Url.Action("Details", "Persons", new { id = credit.Person.Id })">
                                                         <img src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + credit.Person.ProfilePath })" class="staff-photo rounded-circle" alt="@credit.Person.Name" loading="lazy">
+                                                        </a>
                                                     }
                                                     else
                                                     {
+                                                        <a href="@Url.Action("Details", "Persons", new { id = credit.Person.Id })">
                                                         <div class="staff-photo avatar-placeholder small" title="@credit.Person.Name" aria-label="Avatar de @credit.Person.Name"></div>
+                                                        </a>
                                                     }
                                                 </div>
                                                 <div class="staff-info">

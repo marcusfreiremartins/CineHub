@@ -23,7 +23,7 @@ namespace CineHub.Services
             _httpClient = httpClient;
             _rankingService = rankingService;
             _logger = logger;
-            _apiKey = configuration["TMDb:ApiKey"] ?? throw new ArgumentNullException(nameof(configuration), "TMDb:ApiKey not found.");
+            _apiKey = configuration["TMDb:ApiKey"] ?? throw new ArgumentNullException(nameof(configuration), "TMDb: ApiKey not found.");
             _baseUrl = configuration["TMDb:BaseUrl"] ?? throw new ArgumentNullException(nameof(configuration), "TMDb: BaseUrl not found.");
 
             _httpClient.Timeout = TimeSpan.FromSeconds(15);
@@ -125,6 +125,12 @@ namespace CineHub.Services
             }
 
             return await DiscoverMoviesAsync(year, minRating, page);
+        }
+
+        public async Task<(List<PersonDTO> Cast, List<PersonDTO> Crew)> GetPersonMovieCreditsAsync(int personId)
+        {
+            var response = await SendRequestAsync<MovieCreditsResponse>($"/person/{personId}/movie_credits");
+            return (response?.Cast ?? new List<PersonDTO>(), response?.Crew ?? new List<PersonDTO>());
         }
 
         // Gets details of a person (actor/director) by TMDb person ID

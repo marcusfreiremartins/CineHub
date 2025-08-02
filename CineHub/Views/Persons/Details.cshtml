@@ -1,0 +1,267 @@
+﻿@model CineHub.Models.ViewModels.Persons.PersonDetailsViewModel
+@using CineHub.Extensions
+@{
+    ViewData["Title"] = Model.Person.Name;
+    var age = Model.Person.Birthday.HasValue ?
+        (Model.Person.Deathday ?? DateTime.Now).Year - Model.Person.Birthday.Value.Year : 0;
+    var isAlive = !Model.Person.Deathday.HasValue;
+}
+
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Pessoas</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">@Model.Person.Name</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                @if (!string.IsNullOrEmpty(Model.Person.ProfilePath))
+                {
+                    <img src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + Model.Person.ProfilePath })"
+                         class="card-img-top"
+                         alt="@Model.Person.Name"
+                         style="object-fit: cover;">
+                }
+                else
+                {
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                         style="height: 400px;">
+                        <i class="fas fa-user fa-5x text-white"></i>
+                    </div>
+                }
+
+                <div class="card-body">
+                    <h5 class="card-title">@Model.Person.Name</h5>
+
+                    @if (Model.Person.Birthday.HasValue)
+                    {
+                        <p class="card-text">
+                            <strong>Nascimento:</strong> @Model.Person.Birthday.Value.ToString("dd/MM/yyyy")
+                            @if (!string.IsNullOrEmpty(Model.Person.PlaceOfBirth))
+                            {
+                                <br>
+                                <small class="text-muted">@Model.Person.PlaceOfBirth</small>
+                            }
+                        </p>
+                    }
+
+                    @if (Model.Person.Deathday.HasValue)
+                    {
+                        <p class="card-text">
+                            <strong>Falecimento:</strong> @Model.Person.Deathday.Value.ToString("dd/MM/yyyy")
+                        </p>
+                    }
+
+                    @if (age > 0)
+                    {
+                        <p class="card-text">
+                            <strong>Idade:</strong> @age anos @(isAlive ? "" : "(falecido)")
+                        </p>
+                    }
+
+                    <p class="card-text">
+                        <strong>Total de filmes:</strong> @Model.TotalMovies
+                    </p>
+
+                    <p class="card-text">
+                        <strong>Total de papéis:</strong> @Model.TotalRoles
+                    </p>
+
+                    @if (Model.Movies.Any())
+                    {
+                        <p class="card-text">
+                            <strong>Período de atividade:</strong> @Model.Movies.GetActivityYears()
+                        </p>
+
+                        <p class="card-text">
+                            <strong>Média dos filmes:</strong> @Model.Movies.GetFormattedAverageRating()
+                        </p>
+
+                        <div class="mt-3">
+                            <h6>Resumo da carreira:</h6>
+                            <ul class="list-unstyled small">
+                                @if (Model.TotalActingRoles > 0)
+                                {
+                                    <li><i class="fas fa-user text-primary"></i> @Model.TotalActingRoles como ator</li>
+                                }
+                                @if (Model.TotalDirectingRoles > 0)
+                                {
+                                    <li><i class="fas fa-video text-success"></i> @Model.TotalDirectingRoles como diretor</li>
+                                }
+                                @if (Model.TotalWritingRoles > 0)
+                                {
+                                    <li><i class="fas fa-pen text-info"></i> @Model.TotalWritingRoles como roteirista</li>
+                                }
+                                @if (Model.TotalProducingRoles > 0)
+                                {
+                                    <li><i class="fas fa-briefcase text-warning"></i> @Model.TotalProducingRoles como produtor</li>
+                                }
+                                @if (Model.TotalOtherRoles > 0)
+                                {
+                                    <li><i class="fas fa-tools text-secondary"></i> @Model.TotalOtherRoles outros papéis</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            @if (!string.IsNullOrEmpty(Model.Person.Biography))
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Biografia</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">@Model.Person.Biography</p>
+                    </div>
+                </div>
+            }
+
+            @if (Model.GroupedMovies.Any())
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Filmografia (@Model.TotalMovies filmes)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @foreach (var movieGroup in Model.GroupedMovies)
+                            {
+                                <div class="col-md-6 col-lg-4 mb-4">
+                                    <div class="card h-100">
+                                        <a href="@Url.Action("Details", "Movies", new { id = movieGroup.Movie.Id })" class="text-decoration-none">
+                                            @if (movieGroup.HasPoster)
+                                            {
+                                                <img src="@Url.Action("GetImage", "Proxy", new { url = Model.ImageBaseUrl + movieGroup.MoviePosterPath })"
+                                                     class="card-img-top"
+                                                     alt="@movieGroup.Movie.Title"
+                                                     style="height: 250px; object-fit: cover;">
+                                            }
+                                            else
+                                            {
+                                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                                                     style="height: 250px;">
+                                                    <i class="fas fa-film fa-3x text-white"></i>
+                                                </div>
+                                            }
+                                        </a>
+
+                                        <div class="card-body p-3">
+                                            <a href="@Url.Action("Details", "Movies", new { id = movieGroup.Movie.Id })" class="text-decoration-none">
+                                                <h6 class="card-title text-dark mb-2">@movieGroup.Movie.Title</h6>
+                                            </a>
+
+                                            @if (movieGroup.HasReleaseDate)
+                                            {
+                                                <p class="card-text mb-2">
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-calendar-alt"></i> @movieGroup.ReleaseYear
+                                                    </small>
+                                                    @if (movieGroup.Movie.VoteAverage > 0)
+                                                    {
+                                                        <small class="text-muted ms-2">
+                                                            <i class="fas fa-star text-warning"></i> @movieGroup.FormattedRating
+                                                        </small>
+                                                    }
+                                                </p>
+                                            }
+
+                                            <div class="roles-section">
+                                                @if (movieGroup.HasMultipleRoles)
+                                                {
+                                                    <h6 class="text-primary mb-2">
+                                                        <i class="fas fa-users"></i> @movieGroup.Roles.Count papéis:
+                                                    </h6>
+                                                    <ul class="list-unstyled small">
+                                                        @foreach (var role in movieGroup.Roles)
+                                                        {
+                                                            <li class="mb-1">
+                                                                @if (role.IsActingRole)
+                                                                {
+                                                                    <i class="fas fa-user text-primary"></i>
+                                                                }
+                                                                else if (role.Role.IsDirectorRole())
+                                                                {
+                                                                    <i class="fas fa-video text-success"></i>
+                                                                }
+                                                                else if (role.Role.IsWriterRole())
+                                                                {
+                                                                    <i class="fas fa-pen text-info"></i>
+                                                                }
+                                                                else if (role.Role.IsProducerRole())
+                                                                {
+                                                                    <i class="fas fa-briefcase text-warning"></i>
+                                                                }
+                                                                else
+                                                                {
+                                                                    <i class="fas fa-cog text-secondary"></i>
+                                                                }
+
+                                                                @role.DisplayText
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                }
+                                                else
+                                                {
+                                                    <p class="card-text mb-0">
+                                                        @{
+                                                            var singleRole = movieGroup.Roles.First();
+                                                        }
+
+                                                        @if (singleRole.IsActingRole)
+                                                        {
+                                                            <i class="fas fa-user text-primary"></i>
+                                                        }
+                                                        else if (singleRole.Role.IsDirectorRole())
+                                                        {
+                                                            <i class="fas fa-video text-success"></i>
+                                                        }
+                                                        else if (singleRole.Role.IsWriterRole())
+                                                        {
+                                                            <i class="fas fa-pen text-info"></i>
+                                                        }
+                                                        else if (singleRole.Role.IsProducerRole())
+                                                        {
+                                                            <i class="fas fa-briefcase text-warning"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="fas fa-cog text-secondary"></i>
+                                                        }
+
+                                                        <small class="text-muted">@singleRole.DisplayText</small>
+                                                    </p>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-film fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">Nenhum filme encontrado</h5>
+                        <p class="text-muted">Esta pessoa ainda não possui filmes cadastrados.</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
